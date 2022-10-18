@@ -9,7 +9,9 @@ fun main() {
 object HelloWorldMain : KActor<HelloWorldMain.SayHello> {
     data class SayHello(val name: String)
 
-    override fun behavior(): KBehavior<SayHello> {
-        TODO("Not yet implemented")
-    }
+    override fun behavior(): KBehavior<SayHello> =
+        KBehaviors.receive { ctx, msg ->
+            println("Hello ${msg.name}!")
+            KBehaviors.same()
+        }
 }

@@ -1,7 +1,7 @@
 package `in`.rcard.kactor
 
 object KBehaviors {
-    fun <T> receive(ctxAndMessage: (ctx: KActorContext, msg: T) -> KBehavior<T>): KBehavior<T> {
+    fun <T> receive(ctxAndMessage: (ctx: KActorContext<T>, msg: T) -> KBehavior<T>): KBehavior<T> {
         TODO("Not yet implemented")
     }
 

@@ -1,9 +1,16 @@
 package `in`.rcard.kactor
 
+import `in`.rcard.kactor.KActorRef.KActorRefOps.`!`
+import kotlinx.coroutines.runBlocking
+
 // FIXME Just for testing purposes. Delete it in the near future
 fun main() {
-    val actorSystem: KActorSystem<HelloWorldMain.SayHello> =
-        KActorSystem(HelloWorldMain.behavior(), "myKActor")
+    runBlocking {
+        val actorSystem: KActorRef<HelloWorldMain.SayHello> =
+            KActorSystem(HelloWorldMain.behavior(), "myKActor")
+
+        actorSystem `!` HelloWorldMain.SayHello("Riccardo")
+    }
 }
 
 object HelloWorldMain {

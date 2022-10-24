@@ -1,7 +1,7 @@
 package `in`.rcard.kactor
 
 class KActorContext<T> {
-    fun spawn(behavior: KBehavior<T>, name: String): KActorRef<T> {
-        TODO("Not yet implemented")
+    suspend fun spawn(behavior: KBehavior<T>, name: String): ChannelKActorRef<T> {
+        TODO()
     }
 }

@@ -9,7 +9,7 @@ class KActorSystem<T>(
     mainActorName: String
 ) : KActorRef<T> {
 
-    val mainActor: KActor<T>
+    private val mainActor: KActor<T>
 
     init {
         val context = KActorContext<T>()

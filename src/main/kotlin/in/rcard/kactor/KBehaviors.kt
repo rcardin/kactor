@@ -5,7 +5,5 @@ object KBehaviors {
         return KExtensibleBehavior(ctxAndMessage)
     }
 
-    fun <T> same(): KBehavior<T> {
-        TODO("Not yet implemented")
-    }
+    fun same(): KBehavior<Nothing> = KBehaviorSame
 }

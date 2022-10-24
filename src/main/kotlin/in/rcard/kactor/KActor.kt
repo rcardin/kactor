@@ -11,7 +11,9 @@ class KActor<T>(
 
     suspend fun run(behavior: KBehavior<T>) {
         val message = mailbox.receive()
-        val newBehavior = behavior.receive(context, message)
-        run(newBehavior)
+        when (val newBehavior = behavior.receive(context, message)) {
+            KBehaviorSame -> run(behavior)
+            is KExtensibleBehavior -> run(newBehavior)
+        }
     }
 }

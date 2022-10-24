@@ -2,14 +2,14 @@ package `in`.rcard.kactor
 
 // FIXME Just for testing purposes. Delete it in the near future
 fun main() {
-    val actorSystem: KActors<HelloWorldMain.SayHello> =
-        KActors(HelloWorldMain.behavior(), "myKActor")
+    val actorSystem: KActorSystem<HelloWorldMain.SayHello> =
+        KActorSystem(HelloWorldMain.behavior(), "myKActor")
 }
 
-object HelloWorldMain : KActor<HelloWorldMain.SayHello> {
+object HelloWorldMain {
     data class SayHello(val name: String)
 
-    override fun behavior(): KBehavior<SayHello> =
+    fun behavior(): KBehavior<SayHello> =
         KBehaviors.receive { ctx, msg ->
             println("Hello ${msg.name}!")
             KBehaviors.same()

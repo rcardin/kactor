@@ -5,5 +5,5 @@ object KBehaviors {
         return KExtensibleBehavior(ctxAndMessage)
     }
 
-    fun same(): KBehavior<Nothing> = KBehaviorSame
+    fun same(): KBehavior<Any> = KBehaviorSame
 }

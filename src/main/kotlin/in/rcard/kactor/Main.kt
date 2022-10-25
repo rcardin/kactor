@@ -6,10 +6,10 @@ import kotlinx.coroutines.runBlocking
 // FIXME Just for testing purposes. Delete it in the near future
 fun main() {
     runBlocking {
-        val actorSystem: KActorRef<HelloWorldActor.SayHello> =
-            KActorSystem(HelloWorldActor.behavior(), "myKActor")
+        val actorSystem: KActorRef<MainActor.Start> =
+            KActorSystem(MainActor.behavior(), "myKActor")
 
-        actorSystem `!` HelloWorldActor.SayHello("Riccardo")
+        actorSystem `!` MainActor.Start
     }
 }
 

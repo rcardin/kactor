@@ -1,11 +1,12 @@
 package `in`.rcard.kactor
 
-interface KBehavior<T> {
+interface KBehavior<in T> {
     fun receive(ctx: KActorContext<T>, msg: T): KBehavior<T>
 }
 
-object KBehaviorSame : KBehavior<Nothing> {
-    override fun receive(ctx: KActorContext<Nothing>, msg: Nothing): KBehavior<Nothing> {
+// FIXME: This should be KBehavior<Nothing>
+object KBehaviorSame : KBehavior<Any> {
+    override fun receive(ctx: KActorContext<Any>, msg: Any): KBehavior<Any> {
         return this
     }
 }

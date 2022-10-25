@@ -4,7 +4,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-class KActorContext<T> {
+class KActorContext<out T> {
     suspend fun <U> spawn(behavior: KBehavior<U>, name: String): KActorRef<U> {
         val mailbox = Channel<U>()
         val actor = KActor(name, KActorContext(), mailbox)

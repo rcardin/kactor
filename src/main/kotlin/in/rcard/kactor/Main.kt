@@ -19,7 +19,9 @@ object MainActor {
 
     fun behavior(): KBehavior<Start> = KBehaviors.receive { ctx, msg ->
         for (i in 0..100) {
+            println("Spawning actor $i")
             val actorRef = ctx.spawn(HelloWorldActor.behavior(), "HelloWorldActor_$i")
+            println("Spawned actor $i")
             actorRef `!` HelloWorldActor.SayHello("Riccardo")
         }
         KBehaviors.same()

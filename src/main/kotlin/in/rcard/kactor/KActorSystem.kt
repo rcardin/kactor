@@ -1,10 +1,10 @@
 package `in`.rcard.kactor
 
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 class KActorSystem<T>(
     private val mainActorBehavior: KBehavior<T>,
@@ -26,7 +26,7 @@ class KActorSystem<T>(
         mainActorMailbox.send(msg)
         println("Main actor '${mainActor.name}' received message $msg")
         coroutineScope {
-            async {
+            launch {
                 mainActor.run(mainActorBehavior)
             }
         }

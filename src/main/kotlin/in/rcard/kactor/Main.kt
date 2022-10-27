@@ -1,37 +1,35 @@
 package `in`.rcard.kactor
 
 import `in`.rcard.kactor.KActorRef.KActorRefOps.`!`
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.coroutineScope
 
 // FIXME Just for testing purposes. Delete it in the near future
-fun main() {
-    runBlocking {
-        val actorSystem: KActorRef<MainActor.Start> =
-            KActorSystem(MainActor.behavior(), "myKActor")
-
-        actorSystem `!` MainActor.Start
-    }
+suspend fun main() = coroutineScope {
+    val mainActorRef = spawn(MainActor.behavior(), "myKActor")
+    mainActorRef `!` MainActor.Start
 }
 
 object MainActor {
 
     object Start
 
-    fun behavior(): KBehavior<Start> = KBehaviors.receive { ctx, msg ->
-        for (i in 0..100) {
-            println("Spawning actor $i")
-            val actorRef = ctx.spawn(HelloWorldActor.behavior(), "HelloWorldActor_$i")
-            println("Spawned actor $i")
-            actorRef `!` HelloWorldActor.SayHello("Riccardo")
+    suspend fun behavior(): KBehavior<Start> = KBehaviors.receive { ctx, msg ->
+        coroutineScope {
+            for (i in 0..100) {
+                println("Spawning actor $i")
+                val actorRef = spawn(HelloWorldActor.behavior(), "HelloWorldActor_$i")
+                println("Spawned actor $i")
+                actorRef `!` HelloWorldActor.SayHello("Riccardo")
+            }
+            KBehaviors.same()
         }
-        KBehaviors.same()
     }
 }
 
 object HelloWorldActor {
     data class SayHello(val name: String)
 
-    fun behavior(): KBehavior<SayHello> = KBehaviors.receive { _, msg ->
+    suspend fun behavior(): KBehavior<SayHello> = KBehaviors.receive { _, msg ->
         println("Hello ${msg.name}!")
         KBehaviors.same()
     }

@@ -5,14 +5,14 @@ import kotlinx.coroutines.coroutineScope
 
 // FIXME Just for testing purposes. Delete it in the near future
 suspend fun main() = coroutineScope {
-    val mainActorRef = kactor("main", MainActor.behavior())
+    val mainActorRef = kactor("main", MainActor.behavior)
     mainActorRef `!` MainActor.Start
 }
 
 object HelloWorldActor {
     data class SayHello(val name: String)
 
-    fun behavior(): KBehavior<SayHello> =
+    val behavior: KBehavior<SayHello> =
         receive {
             println("Hello ${it.name}!")
             same()
@@ -23,13 +23,12 @@ object MainActor {
 
     object Start
 
-    suspend fun behavior(): KBehavior<Start> =
+    val behavior: KBehavior<Start> =
         receive {
             coroutineScope {
                 for (i in 0..100) {
-                    println("Spawning actor $i")
-                    val helloWorldActorRef = kactor("kactor_$i", HelloWorldActor.behavior())
-                    helloWorldActorRef `!` HelloWorldActor.SayHello("Riccardo")
+                    val helloWorldActorRef = kactor("kactor_$i", HelloWorldActor.behavior)
+                    helloWorldActorRef `!` HelloWorldActor.SayHello("Actor $i")
                 }
             }
             same()

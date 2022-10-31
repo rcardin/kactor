@@ -5,13 +5,13 @@ sealed interface KBehavior<in T> {
 }
 
 // FIXME: This should be `in`.rcard.kactor.KBehavior<Nothing>
-object KBehaviorSame : KBehavior<Any> {
+internal object KBehaviorSame : KBehavior<Any> {
     override suspend fun receive(msg: Any): KBehavior<Any> {
         return this
     }
 }
 
-class KExtensibleBehavior<in T>(private val receivedBehaviour: suspend (msg: T) -> KBehavior<T>) :
+internal class KExtensibleBehavior<in T>(private val receivedBehaviour: suspend (msg: T) -> KBehavior<T>) :
     KBehavior<T> {
     override suspend fun receive(msg: T): KBehavior<T> {
         return receivedBehaviour(msg)

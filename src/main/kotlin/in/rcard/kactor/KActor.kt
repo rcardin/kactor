@@ -5,7 +5,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 
-class KActor<T>(private val name: String, private val receiveChannel: ReceiveChannel<T>) {
+internal class KActor<T>(private val name: String, private val receiveChannel: ReceiveChannel<T>) {
     suspend fun run(behavior: KBehavior<T>) {
         println("Actor '$name' waiting for new message")
         val msg = receiveChannel.receive()

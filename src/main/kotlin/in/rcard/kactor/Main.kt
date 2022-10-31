@@ -12,12 +12,11 @@ suspend fun main() = coroutineScope {
 object HelloWorldActor {
     data class SayHello(val name: String)
 
-    suspend fun behavior(): KBehavior<SayHello> = coroutineScope {
+    fun behavior(): KBehavior<SayHello> =
         receive {
             println("Hello ${it.name}!")
             same()
         }
-    }
 }
 
 object MainActor {

@@ -1,23 +1,25 @@
 package `in`.rcard.kactor
 
-sealed interface KBehavior<in T> {
-    suspend fun receive(msg: T): KBehavior<T>
+sealed interface KBehavior<T> {
+    suspend fun receive(ctx: KActorContext<T>, msg: T): KBehavior<T>
 }
 
 // FIXME: This should be `in`.rcard.kactor.KBehavior<Nothing>
-internal object KBehaviorSame : KBehavior<Any> {
-    override suspend fun receive(msg: Any): KBehavior<Any> {
+internal object KBehaviorSame : KBehavior<Nothing> {
+    override suspend fun receive(ctx: KActorContext<Nothing>, msg: Nothing): KBehavior<Nothing> {
         return this
     }
 }
 
-internal class KExtensibleBehavior<in T>(private val receivedBehaviour: suspend (msg: T) -> KBehavior<T>) :
+internal class KExtensibleBehavior<T>(private val receivedBehaviour: suspend (ctx: KActorContext<T>, msg: T) -> KBehavior<T>) :
     KBehavior<T> {
-    override suspend fun receive(msg: T): KBehavior<T> {
-        return receivedBehaviour(msg)
+    override suspend fun receive(ctx: KActorContext<T>, msg: T): KBehavior<T> {
+        return receivedBehaviour(ctx, msg)
     }
 }
 
-fun <T> receive(receivedBehaviour: suspend (msg: T) -> KBehavior<T>): KBehavior<T> =
+fun <T> receive(receivedBehaviour: suspend (ctx: KActorContext<T>, msg: T) -> KBehavior<T>): KBehavior<T> =
     KExtensibleBehavior(receivedBehaviour)
-fun same(): KBehavior<Any> = KBehaviorSame
+
+@Suppress("UNCHECKED_CAST")
+fun <T> same(): KBehavior<T> = KBehaviorSame as KBehavior<T>

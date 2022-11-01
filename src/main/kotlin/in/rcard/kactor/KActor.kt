@@ -6,6 +6,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 internal class KActor<T>(name: String, private val receiveChannel: ReceiveChannel<T>) {
 
@@ -37,13 +38,18 @@ fun <T> CoroutineScope.kactor(name: String, behavior: KBehavior<T>): KActorRef<T
     return KActorRef(mailbox)
 }
 
-fun <T, R> CoroutineScope.ask(toKActorRef: KActorRef<T>, msgFactory: (ref: KActorRef<R>) -> T): Deferred<R> {
+fun <T, R> CoroutineScope.ask(toKActorRef: KActorRef<T>, timeoutInMillis: Long = 1000L, msgFactory: (ref: KActorRef<R>) -> T): Deferred<R> {
     val mailbox = Channel<R>()
     val result = async {
-        toKActorRef.tell(msgFactory.invoke(KActorRef(mailbox)))
-        val msgReceived = mailbox.receive()
-        mailbox.close()
-        msgReceived
+        try {
+            withTimeout(timeoutInMillis) {
+                toKActorRef.tell(msgFactory.invoke(KActorRef(mailbox)))
+                val msgReceived = mailbox.receive()
+                msgReceived
+            }
+        } finally {
+            mailbox.close()
+        }
     }
     return result
 }

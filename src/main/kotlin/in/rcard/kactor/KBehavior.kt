@@ -4,7 +4,6 @@ sealed interface KBehavior<T> {
     suspend fun receive(ctx: KActorContext<T>, msg: T): KBehavior<T>
 }
 
-// FIXME: This should be `in`.rcard.kactor.KBehavior<Nothing>
 internal object KBehaviorSame : KBehavior<Nothing> {
     override suspend fun receive(ctx: KActorContext<Nothing>, msg: Nothing): KBehavior<Nothing> {
         return this

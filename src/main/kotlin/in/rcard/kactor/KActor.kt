@@ -1,6 +1,8 @@
 package `in`.rcard.kactor
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
@@ -33,4 +35,15 @@ fun <T> CoroutineScope.kactor(name: String, behavior: KBehavior<T>): KActorRef<T
         actor.run(behavior)
     }
     return KActorRef(mailbox)
+}
+
+fun <T, R> CoroutineScope.ask(toKActorRef: KActorRef<T>, msgFactory: (ref: KActorRef<R>) -> T): Deferred<R> {
+    val mailbox = Channel<R>()
+    val result = async {
+        toKActorRef.tell(msgFactory.invoke(KActorRef(mailbox)))
+        val msgReceived = mailbox.receive()
+        mailbox.close()
+        msgReceived
+    }
+    return result
 }

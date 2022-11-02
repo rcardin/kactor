@@ -7,4 +7,5 @@ suspend fun main() = coroutineScope {
 //    spawningActor()
 //    requestResponsePattern()
 //    askPattern()
+//    receiveMessagePattern()
 }

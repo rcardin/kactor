@@ -20,5 +20,10 @@ internal class KExtensibleBehavior<T>(private val receivedBehaviour: suspend (ct
 fun <T> receive(receivedBehaviour: suspend (ctx: KActorContext<T>, msg: T) -> KBehavior<T>): KBehavior<T> =
     KExtensibleBehavior(receivedBehaviour)
 
+fun <T> receiveMessage(receivedBehaviour: suspend (msg: T) -> KBehavior<T>): KBehavior<T> =
+    KExtensibleBehavior { _, msg ->
+        receivedBehaviour(msg)
+    }
+
 @Suppress("UNCHECKED_CAST")
 fun <T> same(): KBehavior<T> = KBehaviorSame as KBehavior<T>

@@ -29,7 +29,7 @@ internal class KActor<T>(name: String, private val receiveChannel: ReceiveChanne
 
 class KActorContext<T>(val actorRef: KActorRef<T>, val name: String)
 
-fun <T> CoroutineScope.kactor(name: String, behavior: KBehavior<T>): KActorRef<T> {
+suspend fun <T> CoroutineScope.kactor(name: String, behavior: KBehavior<T>): KActorRef<T> {
     val mailbox = Channel<T>()
     launch {
         val actor = KActor(name, mailbox)
@@ -38,7 +38,11 @@ fun <T> CoroutineScope.kactor(name: String, behavior: KBehavior<T>): KActorRef<T
     return KActorRef(mailbox)
 }
 
-fun <T, R> CoroutineScope.ask(toKActorRef: KActorRef<T>, timeoutInMillis: Long = 1000L, msgFactory: (ref: KActorRef<R>) -> T): Deferred<R> {
+fun <T, R> CoroutineScope.ask(
+    toKActorRef: KActorRef<T>,
+    timeoutInMillis: Long = 1000L,
+    msgFactory: (ref: KActorRef<R>) -> T
+): Deferred<R> {
     val mailbox = Channel<R>()
     val result = async {
         try {

@@ -3,14 +3,14 @@ package `in`.rcard.kactor.examples
 import `in`.rcard.kactor.KActorRef.KActorRefOps.`!`
 import `in`.rcard.kactor.KBehavior
 import `in`.rcard.kactor.kactor
+import `in`.rcard.kactor.receive
 import `in`.rcard.kactor.receiveMessage
 import `in`.rcard.kactor.same
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.supervisorScope
 
 object ExceptionHandling {
 
-    suspend fun exceptionHandling() = coroutineScope {
+    suspend fun exceptionHandling() = supervisorScope {
         val mainKActorRef = kactor("main", MainActor.behavior())
         mainKActorRef `!` MainActor.Start
     }
@@ -20,14 +20,12 @@ object ExceptionHandling {
         object Start
 
         suspend fun behavior(): KBehavior<Start> =
-            receiveMessage { _ ->
-                supervisorScope {
-                    repeat(1000) {
-                        val ref = kactor("kactor_$it", PrintCount.behavior)
-                        ref `!` PrintCount.Count(it)
-                    }
-                    same()
+            receive { scope, _, _ ->
+                repeat(1000) {
+                    val ref = scope.kactor("kactor_$it", PrintCount.behavior)
+                    ref `!` PrintCount.Count(it)
                 }
+                same()
             }
     }
 

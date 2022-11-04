@@ -8,14 +8,14 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
-internal class KActor<T>(name: String, private val receiveChannel: ReceiveChannel<T>) {
+internal class KActor<T>(private val scope: CoroutineScope, name: String, private val receiveChannel: ReceiveChannel<T>) {
 
     private val ctx: KActorContext<T> =
         KActorContext(KActorRef(receiveChannel as Channel<T>), name)
 
     suspend fun run(behavior: KBehavior<T>) {
         val msg = receiveChannel.receive()
-        when (val newBehavior = behavior.receive(ctx, msg)) {
+        when (val newBehavior = behavior.receive(scope, ctx, msg)) {
             is KBehaviorSame -> {
                 run(behavior)
             }
@@ -32,7 +32,7 @@ class KActorContext<T>(val actorRef: KActorRef<T>, val name: String)
 suspend fun <T> CoroutineScope.kactor(name: String, behavior: KBehavior<T>): KActorRef<T> {
     val mailbox = Channel<T>()
     launch {
-        val actor = KActor(name, mailbox)
+        val actor = KActor(this, name, mailbox)
         actor.run(behavior)
     }
     return KActorRef(mailbox)

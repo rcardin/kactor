@@ -23,7 +23,7 @@ object RequestResponsePattern {
 
         data class Question(val replyTo: KActorRef<AskerActor.Command>)
 
-        val behavior: KBehavior<Question> = receive { ctx, msg ->
+        val behavior: KBehavior<Question> = receive { _, _, msg ->
             msg.replyTo `!` AskerActor.Answer("42")
             same()
         }
@@ -36,7 +36,7 @@ object RequestResponsePattern {
         data class Answer(val msg: String) : Command
 
         fun behavior(teller: KActorRef<TellerActor.Question>): KBehavior<Command> =
-            receive { ctx, msg ->
+            receive { _, ctx, msg ->
                 when (msg) {
                     is Start -> {
                         teller `!` TellerActor.Question(ctx.actorRef)

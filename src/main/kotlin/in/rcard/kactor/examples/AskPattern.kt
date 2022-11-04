@@ -28,7 +28,7 @@ object AskPattern {
 
         data class Question(val replyTo: KActorRef<Answer>)
 
-        val behavior: KBehavior<Question> = receive { ctx, msg ->
+        val behavior: KBehavior<Question> = receive { _, _, msg ->
             msg.replyTo `!` Answer("42")
             same()
         }

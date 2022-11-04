@@ -20,7 +20,7 @@ object SpawningActor {
         data class SayHello(val name: String)
 
         val behavior: KBehavior<SayHello> =
-            receive { ctx, msg ->
+            receive { _, _, msg ->
                 println("Hello ${msg.name}!")
                 same()
             }
@@ -31,12 +31,10 @@ object SpawningActor {
         object Start
 
         val behavior: KBehavior<Start> =
-            receive { _, _ ->
-                coroutineScope {
-                    for (i in 0..100) {
-                        val helloWorldActorRef = kactor("kactor_$i", HelloWorldActor.behavior)
-                        helloWorldActorRef `!` HelloWorldActor.SayHello("Actor $i")
-                    }
+            receive { scope, _, _ ->
+                for (i in 0..100) {
+                    val helloWorldActorRef = scope.kactor("kactor_$i", HelloWorldActor.behavior)
+                    helloWorldActorRef `!` HelloWorldActor.SayHello("Actor $i")
                 }
                 same()
             }

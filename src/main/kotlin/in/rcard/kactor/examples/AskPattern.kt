@@ -12,25 +12,25 @@ import kotlinx.coroutines.coroutineScope
 
 object AskPattern {
 
-    suspend fun askPattern() = coroutineScope {
-        val tellerActor = kactor("teller", TellerActor.behavior)
-
-        val deferred: Deferred<Answer> = ask(tellerActor) { ref ->
-            TellerActor.Question(ref)
-        }
-
-        println("The answer is: ${deferred.await().msg}")
-    }
-
-    data class Answer(val msg: String)
-
-    object TellerActor {
-
-        data class Question(val replyTo: KActorRef<Answer>)
-
-        val behavior: KBehavior<Question> = receive { ctx, msg ->
-            msg.replyTo `!` Answer("42")
-            same()
-        }
-    }
+//    suspend fun askPattern() = coroutineScope {
+//        val tellerActor = kactor("teller", TellerActor.behavior)
+//
+//        val deferred: Deferred<Answer> = ask(tellerActor) { ref ->
+//            TellerActor.Question(ref)
+//        }
+//
+//        println("The answer is: ${deferred.await().msg}")
+//    }
+//
+//    data class Answer(val msg: String)
+//
+//    object TellerActor {
+//
+//        data class Question(val replyTo: KActorRef<Answer>)
+//
+//        val behavior: KBehavior<Question> = receive { ctx, msg ->
+//            msg.replyTo `!` Answer("42")
+//            same()
+//        }
+//    }
 }

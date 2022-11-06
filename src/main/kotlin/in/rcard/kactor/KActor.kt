@@ -2,16 +2,20 @@ package `in`.rcard.kactor
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
-internal class KActor<T>(name: String, private val receiveChannel: ReceiveChannel<T>) {
+internal class KActor<T>(
+    name: String,
+    private val receiveChannel: Channel<T>,
+    scope: CoroutineScope
+) {
 
     private val ctx: KActorContext<T> =
-        KActorContext(KActorRef(receiveChannel as Channel<T>), name)
+        KActorContext(KActorRef(receiveChannel), name, scope)
 
     suspend fun run(behavior: KBehavior<T>) {
         val msg = receiveChannel.receive()
@@ -27,12 +31,16 @@ internal class KActor<T>(name: String, private val receiveChannel: ReceiveChanne
     }
 }
 
-class KActorContext<T>(val actorRef: KActorRef<T>, val name: String)
+class KActorContext<T>(
+    val actorRef: KActorRef<T>,
+    val name: String,
+    val scope: CoroutineScope = CoroutineScope(SupervisorJob())
+)
 
-suspend fun <T> CoroutineScope.kactor(name: String, behavior: KBehavior<T>): KActorRef<T> {
+fun <T> KActorContext<*>.kactor(name: String, behavior: KBehavior<T>): KActorRef<T> {
     val mailbox = Channel<T>()
-    launch {
-        val actor = KActor(name, mailbox)
+    scope.launch {
+        val actor = KActor(name, mailbox, this)
         actor.run(behavior)
     }
     return KActorRef(mailbox)
@@ -56,4 +64,13 @@ fun <T, R> CoroutineScope.ask(
         }
     }
     return result
+}
+
+fun <T> CoroutineScope.kactorSystem(behavior: KBehavior<T>): KActorRef<T> {
+    val mailbox = Channel<T>()
+    launch {
+        val actor = KActor("main", mailbox, this)
+        actor.run(behavior)
+    }
+    return KActorRef(mailbox)
 }

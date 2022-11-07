@@ -1,12 +1,12 @@
 package `in`.rcard.kactor
 
-import `in`.rcard.kactor.examples.SpawningActor.spawningActor
+import `in`.rcard.kactor.examples.RequestResponsePattern.requestResponsePattern
 import kotlinx.coroutines.coroutineScope
 
 // FIXME Just for testing purposes. Delete it in the near future
 suspend fun main() = coroutineScope {
-    spawningActor()
-//    requestResponsePattern()
+//    spawningActor()
+    requestResponsePattern()
 //    askPattern()
 //    receiveMessagePattern()
 //    exceptionHandling()

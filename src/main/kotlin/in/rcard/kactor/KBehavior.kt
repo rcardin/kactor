@@ -17,6 +17,11 @@ internal class KExtensibleBehavior<T>(private val receivedBehaviour: suspend (ct
     }
 }
 
+// fun <T> setup(behavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>): KBehavior<T> =
+//    KExtensibleBehavior { ctx, _ ->
+//        behavior(ctx)
+//    }
+
 fun <T> receive(receivedBehaviour: suspend (ctx: KActorContext<T>, msg: T) -> KBehavior<T>): KBehavior<T> =
     KExtensibleBehavior(receivedBehaviour)
 

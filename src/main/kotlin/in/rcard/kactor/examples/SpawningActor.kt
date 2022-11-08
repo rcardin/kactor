@@ -1,12 +1,14 @@
 package `in`.rcard.kactor.examples
 
+import `in`.rcard.kactor.KActorRef
 import `in`.rcard.kactor.KActorRef.KActorRefOps.`!`
 import `in`.rcard.kactor.KBehavior
+import `in`.rcard.kactor.examples.SpawningActor.MainActor.ReplyReceived
 import `in`.rcard.kactor.kactor
 import `in`.rcard.kactor.kactorSystem
-import `in`.rcard.kactor.receive
 import `in`.rcard.kactor.receiveMessage
 import `in`.rcard.kactor.same
+import `in`.rcard.kactor.setup
 import kotlinx.coroutines.coroutineScope
 
 /**
@@ -14,31 +16,36 @@ import kotlinx.coroutines.coroutineScope
  */
 object SpawningActor {
     suspend fun spawningActor() = coroutineScope {
-        val mainActor = kactorSystem(MainActor.behavior)
-        mainActor `!` MainActor.Start
+        kactorSystem(MainActor.behavior)
     }
 
     object HelloWorldActor {
-        data class SayHello(val name: String)
+        data class SayHello(val name: String, val replyTo: KActorRef<ReplyReceived>)
 
         val behavior: KBehavior<SayHello> =
             receiveMessage { msg ->
                 println("Hello ${msg.name}!")
+                msg.replyTo `!` ReplyReceived
                 same()
             }
     }
 
     object MainActor {
+        object ReplyReceived
 
-        object Start
-
-        val behavior: KBehavior<Start> =
-            receive { ctx, _ ->
+        val behavior: KBehavior<ReplyReceived> =
+            setup { ctx ->
                 for (i in 0..100) {
                     val helloWorldActorRef = ctx.kactor("kactor_$i", HelloWorldActor.behavior)
-                    helloWorldActorRef `!` HelloWorldActor.SayHello("Actor $i")
+                    helloWorldActorRef `!` HelloWorldActor.SayHello("Actor $i", ctx.actorRef)
                 }
-                same()
+                receiveAndCount(0)
             }
     }
+
+    private fun receiveAndCount(counted: Int): KBehavior<ReplyReceived> =
+        receiveMessage {
+            println("Received message: $counted")
+            receiveAndCount(counted + 1)
+        }
 }

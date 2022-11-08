@@ -8,6 +8,8 @@ import `in`.rcard.kactor.kactorSystem
 import `in`.rcard.kactor.receive
 import `in`.rcard.kactor.receiveMessage
 import `in`.rcard.kactor.same
+import `in`.rcard.kactor.setup
+import `in`.rcard.kactor.stop
 import kotlinx.coroutines.coroutineScope
 
 /**
@@ -25,12 +27,12 @@ object RequestResponsePattern {
         object Start
 
         val behavior: KBehavior<Start> =
-            receive { ctx, _ ->
+            setup { ctx ->
                 val tellerActor = ctx.kactor("teller", TellerActor.behavior)
                 val askerActor = ctx.kactor("asker", AskerActor.behavior(tellerActor))
 
                 askerActor `!` AskerActor.Start
-                same()
+                stop()
             }
     }
 

@@ -18,13 +18,39 @@ internal class KActor<T>(
         KActorContext(KActorRef(receiveChannel), name, scope)
 
     suspend fun run(behavior: KBehavior<T>) {
-        val msg = receiveChannel.receive()
-        when (val newBehavior = behavior.receive(ctx, msg)) {
+        when (behavior) {
+            is KSetupBehavior -> {
+                val newBehavior = behavior.setup(ctx)
+                nextBehavior(newBehavior, behavior)
+            }
+
+            is KExtensibleBehavior -> {
+                val msg = receiveChannel.receive()
+                val newBehavior = behavior.receive(ctx, msg)
+                nextBehavior(newBehavior, behavior)
+            }
+
+            is KBehaviorSame -> {
+                throw IllegalStateException("The use of the behavior 'KBehaviorSame' is not supported as the first behavior")
+            }
+
+            is KBehaviorStop -> {
+                receiveChannel.close()
+                // TODO We should stop also all the children actors
+            }
+        }
+    }
+
+    private suspend fun nextBehavior(
+        newBehavior: KBehavior<T>,
+        behavior: KBehavior<T>
+    ) {
+        when (newBehavior) {
             is KBehaviorSame -> {
                 run(behavior)
             }
 
-            is KExtensibleBehavior -> {
+            else -> {
                 run(newBehavior)
             }
         }

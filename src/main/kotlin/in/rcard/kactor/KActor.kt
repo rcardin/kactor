@@ -65,7 +65,10 @@ class KActorContext<T>(
 
 fun <T> KActorContext<*>.kactor(name: String, behavior: KBehavior<T>): KActorRef<T> {
     val mailbox = Channel<T>()
-    scope.launch {
+    // FIXME This prevent a child actor to stop the parent actor
+    //       Make it configurable
+    val supervisorJob = SupervisorJob()
+    scope.launch(supervisorJob) {
         val actor = KActor(name, mailbox, this)
         actor.run(behavior)
     }

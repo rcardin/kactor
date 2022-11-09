@@ -63,7 +63,7 @@ class KActorContext<T>(
     val scope: CoroutineScope = CoroutineScope(SupervisorJob())
 )
 
-fun <T> KActorContext<*>.kactor(name: String, behavior: KBehavior<T>): KActorRef<T> {
+fun <T> KActorContext<*>.spawn(name: String, behavior: KBehavior<T>): KActorRef<T> {
     val mailbox = Channel<T>()
     // FIXME This prevent a child actor to stop the parent actor
     //       Make it configurable

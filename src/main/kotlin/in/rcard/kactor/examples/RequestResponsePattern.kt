@@ -3,12 +3,12 @@ package `in`.rcard.kactor.examples
 import `in`.rcard.kactor.KActorRef
 import `in`.rcard.kactor.KActorRef.KActorRefOps.`!`
 import `in`.rcard.kactor.KBehavior
-import `in`.rcard.kactor.kactor
 import `in`.rcard.kactor.kactorSystem
 import `in`.rcard.kactor.receive
 import `in`.rcard.kactor.receiveMessage
 import `in`.rcard.kactor.same
 import `in`.rcard.kactor.setup
+import `in`.rcard.kactor.spawn
 import `in`.rcard.kactor.stop
 import kotlinx.coroutines.coroutineScope
 
@@ -28,8 +28,8 @@ object RequestResponsePattern {
 
         val behavior: KBehavior<Start> =
             setup { ctx ->
-                val tellerActor = ctx.kactor("teller", TellerActor.behavior)
-                val askerActor = ctx.kactor("asker", AskerActor.behavior(tellerActor))
+                val tellerActor = ctx.spawn("teller", TellerActor.behavior)
+                val askerActor = ctx.spawn("asker", AskerActor.behavior(tellerActor))
 
                 askerActor `!` AskerActor.Start
                 stop()

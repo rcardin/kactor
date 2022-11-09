@@ -4,11 +4,11 @@ import `in`.rcard.kactor.KActorRef
 import `in`.rcard.kactor.KActorRef.KActorRefOps.`!`
 import `in`.rcard.kactor.KBehavior
 import `in`.rcard.kactor.examples.SpawningActor.MainActor.ReplyReceived
-import `in`.rcard.kactor.kactor
 import `in`.rcard.kactor.kactorSystem
 import `in`.rcard.kactor.receiveMessage
 import `in`.rcard.kactor.same
 import `in`.rcard.kactor.setup
+import `in`.rcard.kactor.spawn
 import kotlinx.coroutines.coroutineScope
 
 /**
@@ -36,7 +36,7 @@ object SpawningActor {
         val behavior: KBehavior<ReplyReceived> =
             setup { ctx ->
                 for (i in 0..100) {
-                    val helloWorldActorRef = ctx.kactor("kactor_$i", HelloWorldActor.behavior)
+                    val helloWorldActorRef = ctx.spawn("kactor_$i", HelloWorldActor.behavior)
                     helloWorldActorRef `!` HelloWorldActor.SayHello("Actor $i", ctx.actorRef)
                 }
                 receiveAndCount(0)

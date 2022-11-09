@@ -19,12 +19,12 @@ internal class KActor<T>(
 
     suspend fun run(behavior: KBehavior<T>) {
         when (behavior) {
-            is KSetupBehavior -> {
+            is KBehaviorSetup -> {
                 val newBehavior = behavior.setup(ctx)
                 nextBehavior(newBehavior, behavior)
             }
 
-            is KExtensibleBehavior -> {
+            is KBehaviorExtension -> {
                 val msg = receiveChannel.receive()
                 val newBehavior = behavior.receive(ctx, msg)
                 nextBehavior(newBehavior, behavior)

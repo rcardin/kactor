@@ -6,14 +6,14 @@ internal object KBehaviorSame : KBehavior<Nothing>
 
 internal object KBehaviorStop : KBehavior<Nothing>
 
-internal class KExtensibleBehavior<T>(private val receivedBehaviour: suspend (ctx: KActorContext<T>, msg: T) -> KBehavior<T>) :
+internal class KBehaviorExtension<T>(private val receivedBehaviour: suspend (ctx: KActorContext<T>, msg: T) -> KBehavior<T>) :
     KBehavior<T> {
     suspend fun receive(ctx: KActorContext<T>, msg: T): KBehavior<T> {
         return receivedBehaviour(ctx, msg)
     }
 }
 
-internal class KSetupBehavior<T>(private val setupBehavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>) :
+internal class KBehaviorSetup<T>(private val setupBehavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>) :
     KBehavior<T> {
     suspend fun setup(ctx: KActorContext<T>): KBehavior<T> {
         return setupBehavior(ctx)
@@ -21,15 +21,15 @@ internal class KSetupBehavior<T>(private val setupBehavior: suspend (ctx: KActor
 }
 
 fun <T> setup(behavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>): KBehavior<T> =
-    KSetupBehavior { ctx ->
+    KBehaviorSetup { ctx ->
         behavior(ctx)
     }
 
 fun <T> receive(receivedBehaviour: suspend (ctx: KActorContext<T>, msg: T) -> KBehavior<T>): KBehavior<T> =
-    KExtensibleBehavior(receivedBehaviour)
+    KBehaviorExtension(receivedBehaviour)
 
 fun <T> receiveMessage(receivedBehaviour: suspend (msg: T) -> KBehavior<T>): KBehavior<T> =
-    KExtensibleBehavior { _, msg ->
+    KBehaviorExtension { _, msg ->
         receivedBehaviour(msg)
     }
 
@@ -37,4 +37,4 @@ fun <T> receiveMessage(receivedBehaviour: suspend (msg: T) -> KBehavior<T>): KBe
 fun <T> same(): KBehavior<T> = KBehaviorSame as KBehavior<T>
 
 @Suppress("UNCHECKED_CAST")
-fun <T> stop(): KBehavior<T> = KBehaviorStop as KBehavior<T>
+fun <T> stopped(): KBehavior<T> = KBehaviorStop as KBehavior<T>

@@ -9,7 +9,7 @@ import `in`.rcard.kactor.receiveMessage
 import `in`.rcard.kactor.same
 import `in`.rcard.kactor.setup
 import `in`.rcard.kactor.spawn
-import `in`.rcard.kactor.stop
+import `in`.rcard.kactor.stopped
 import kotlinx.coroutines.coroutineScope
 
 /**
@@ -32,7 +32,7 @@ object RequestResponsePattern {
                 val askerActor = ctx.spawn("asker", AskerActor.behavior(tellerActor))
 
                 askerActor `!` AskerActor.Start
-                stop()
+                stopped()
             }
     }
 

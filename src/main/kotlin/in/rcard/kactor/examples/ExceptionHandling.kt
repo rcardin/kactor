@@ -7,7 +7,7 @@ import `in`.rcard.kactor.receiveMessage
 import `in`.rcard.kactor.same
 import `in`.rcard.kactor.setup
 import `in`.rcard.kactor.spawn
-import `in`.rcard.kactor.stop
+import `in`.rcard.kactor.stopped
 import kotlinx.coroutines.coroutineScope
 
 object ExceptionHandling {
@@ -27,7 +27,7 @@ object ExceptionHandling {
                     val ref = ctx.spawn("kactor_$it", PrintCount.behavior)
                     ref `!` PrintCount.Count(it)
                 }
-                stop()
+                stopped()
             }
     }
 

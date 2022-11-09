@@ -2,11 +2,13 @@ package `in`.rcard.kactor
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.CoroutineContext
 
 internal class KActor<T>(
     name: String,
@@ -38,6 +40,11 @@ internal class KActor<T>(
                 receiveChannel.close()
                 // TODO We should stop also all the children actors
             }
+
+            is KBehaviorSupervised -> {
+                // FIXME: Maybe, it's possible to use the KBehaviorExtension to handle the supervision
+                run(behavior.supervisedBehavior)
+            }
         }
     }
 
@@ -67,13 +74,25 @@ fun <T> KActorContext<*>.spawn(name: String, behavior: KBehavior<T>): KActorRef<
     val mailbox = Channel<T>()
     // FIXME This prevent a child actor to stop the parent actor
     //       Make it configurable
-    val supervisorJob = SupervisorJob()
-    scope.launch(supervisorJob) {
+    val job = resolveJob(behavior)
+    scope.launch(job) {
         val actor = KActor(name, mailbox, this)
         actor.run(behavior)
     }
     return KActorRef(mailbox)
 }
+
+private fun <T> resolveJob(behavior: KBehavior<T>): CoroutineContext =
+    when (behavior) {
+        is KBehaviorSupervised -> {
+            when (behavior.strategy) {
+                SupervisorStrategy.STOP -> SupervisorJob()
+                SupervisorStrategy.ESCALATE -> Job()
+            }
+        }
+
+        else -> Job()
+    }
 
 fun <T, R> CoroutineScope.ask(
     toKActorRef: KActorRef<T>,

@@ -2,12 +2,14 @@ package `in`.rcard.kactor.examples
 
 import `in`.rcard.kactor.KActorRef.KActorRefOps.`!`
 import `in`.rcard.kactor.KBehavior
+import `in`.rcard.kactor.SupervisorStrategy
 import `in`.rcard.kactor.kactorSystem
 import `in`.rcard.kactor.receiveMessage
 import `in`.rcard.kactor.same
 import `in`.rcard.kactor.setup
 import `in`.rcard.kactor.spawn
 import `in`.rcard.kactor.stopped
+import `in`.rcard.kactor.supervise
 import kotlinx.coroutines.coroutineScope
 
 object ExceptionHandling {
@@ -24,7 +26,10 @@ object ExceptionHandling {
         suspend fun behavior(): KBehavior<Start> =
             setup { ctx ->
                 repeat(1000) {
-                    val ref = ctx.spawn("kactor_$it", PrintCount.behavior)
+                    val ref = ctx.spawn(
+                        "kactor_$it",
+                        supervise(PrintCount.behavior).withStrategy(SupervisorStrategy.STOP)
+                    )
                     ref `!` PrintCount.Count(it)
                 }
                 stopped()

@@ -38,3 +38,18 @@ fun <T> same(): KBehavior<T> = KBehaviorSame as KBehavior<T>
 
 @Suppress("UNCHECKED_CAST")
 fun <T> stopped(): KBehavior<T> = KBehaviorStop as KBehavior<T>
+
+fun <T> supervise(supervisedBehavior: KBehavior<T>): KBehaviorSupervised<T> =
+    KBehaviorSupervised(supervisedBehavior)
+
+class KBehaviorSupervised<T>(
+    val supervisedBehavior: KBehavior<T>,
+    val strategy: SupervisorStrategy = SupervisorStrategy.ESCALATE
+) : KBehavior<T> {
+    fun withStrategy(strategy: SupervisorStrategy): KBehavior<T> =
+        KBehaviorSupervised(supervisedBehavior, strategy)
+}
+enum class SupervisorStrategy {
+    STOP,
+    ESCALATE
+}

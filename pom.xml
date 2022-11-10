@@ -4,13 +4,30 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>in.rcard</groupId>
-    <artifactId>kactor</artifactId>
+    <artifactId>kactor-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>core</module>
+        <module>examples</module>
+    </modules>
 
     <properties>
         <kotlin.version>1.7.20</kotlin.version>
         <kotlinx-coroutines.version>1.6.4</kotlinx-coroutines.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>in.rcard</groupId>
+                <artifactId>kactor-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>

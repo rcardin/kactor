@@ -71,7 +71,7 @@ class KActorContext<T>(
 )
 
 fun <T> KActorContext<*>.spawn(name: String, behavior: KBehavior<T>): KActorRef<T> {
-    val mailbox = Channel<T>()
+    val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
     // FIXME This prevent a child actor to stop the parent actor
     //       Make it configurable
     val job = resolveJob(behavior)

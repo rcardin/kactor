@@ -1,5 +1,6 @@
 package `in`.rcard.kactor
 
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
@@ -8,6 +9,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import kotlin.coroutines.CoroutineContext
 
 internal class KActor<T>(
@@ -64,18 +67,20 @@ internal class KActor<T>(
     }
 }
 
-class KActorContext<T>(
+class KActorContext<T> internal constructor(
     val actorRef: KActorRef<T>,
-    val name: String,
-    val scope: CoroutineScope = CoroutineScope(SupervisorJob())
-)
+    name: String,
+    internal val scope: CoroutineScope = CoroutineScope(SupervisorJob())
+) {
+    internal val logger: Logger = LoggerFactory.getLogger(name)
+}
+
+fun KActorContext<*>.log(): Logger = logger
 
 fun <T> KActorContext<*>.spawn(name: String, behavior: KBehavior<T>): KActorRef<T> {
     val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
-    // FIXME This prevent a child actor to stop the parent actor
-    //       Make it configurable
     val job = resolveJob(behavior)
-    scope.launch(job) {
+    scope.launch(CoroutineName("kactor-$name") + job) {
         val actor = KActor(name, mailbox, this)
         actor.run(behavior)
     }

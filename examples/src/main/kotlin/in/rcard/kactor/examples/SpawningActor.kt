@@ -5,6 +5,8 @@ import `in`.rcard.kactor.KActorRef.KActorRefOps.`!`
 import `in`.rcard.kactor.KBehavior
 import `in`.rcard.kactor.examples.SpawningActor.MainActor.ReplyReceived
 import `in`.rcard.kactor.kactorSystem
+import `in`.rcard.kactor.log
+import `in`.rcard.kactor.receive
 import `in`.rcard.kactor.receiveMessage
 import `in`.rcard.kactor.same
 import `in`.rcard.kactor.setup
@@ -38,14 +40,15 @@ object SpawningActor {
                 for (i in 0..100) {
                     val helloWorldActorRef = ctx.spawn("kactor_$i", HelloWorldActor.behavior)
                     helloWorldActorRef `!` HelloWorldActor.SayHello("Actor $i", ctx.actorRef)
+                    ctx.log().info("Sent message to actor $i")
                 }
                 receiveAndCount(0)
             }
     }
 
     private fun receiveAndCount(counted: Int): KBehavior<ReplyReceived> =
-        receiveMessage {
-            println("Received message: $counted")
+        receive { ctx, _ ->
+            ctx.log().info("Received message: $counted")
             receiveAndCount(counted + 1)
         }
 }

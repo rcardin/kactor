@@ -20,6 +20,16 @@ internal class KBehaviorSetup<T>(private val setupBehavior: suspend (ctx: KActor
     }
 }
 
+internal class KBehaviorSupervised<T>(
+    val supervisedBehavior: KBehavior<T>,
+    val strategy: SupervisorStrategy = SupervisorStrategy.ESCALATE
+) : KBehavior<T>
+
+enum class SupervisorStrategy {
+    STOP,
+    ESCALATE
+}
+
 fun <T> setup(behavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>): KBehavior<T> =
     KBehaviorSetup { ctx ->
         behavior(ctx)
@@ -41,13 +51,3 @@ fun <T> stopped(): KBehavior<T> = KBehaviorStop as KBehavior<T>
 
 fun <T> supervise(supervisedBehavior: KBehavior<T>, withStrategy: SupervisorStrategy): KBehavior<T> =
     KBehaviorSupervised(supervisedBehavior, withStrategy)
-
-internal class KBehaviorSupervised<T>(
-    val supervisedBehavior: KBehavior<T>,
-    val strategy: SupervisorStrategy = SupervisorStrategy.ESCALATE
-) : KBehavior<T>
-
-enum class SupervisorStrategy {
-    STOP,
-    ESCALATE
-}

@@ -9,13 +9,17 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>in.rcard</groupId>
     <artifactId>kactor-examples</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>in.rcard</groupId>
             <artifactId>kactor-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.4.4</version>
         </dependency>
     </dependencies>
 </project>

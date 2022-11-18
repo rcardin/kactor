@@ -8,6 +8,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withTimeout
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -80,7 +81,7 @@ fun KActorContext<*>.log(): Logger = logger
 fun <T> KActorContext<*>.spawn(name: String, behavior: KBehavior<T>): KActorRef<T> {
     val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
     val job = resolveJob(behavior)
-    scope.launch(CoroutineName("kactor-$name") + job) {
+    scope.launch(CoroutineName("kactor-$name") + job + MDCContext(mapOf("kactor" to name))) {
         val actor = KActor(name, mailbox, this)
         actor.run(behavior)
     }

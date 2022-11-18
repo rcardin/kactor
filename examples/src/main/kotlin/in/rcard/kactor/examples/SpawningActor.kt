@@ -7,7 +7,6 @@ import `in`.rcard.kactor.examples.SpawningActor.MainActor.ReplyReceived
 import `in`.rcard.kactor.kactorSystem
 import `in`.rcard.kactor.log
 import `in`.rcard.kactor.receive
-import `in`.rcard.kactor.receiveMessage
 import `in`.rcard.kactor.same
 import `in`.rcard.kactor.setup
 import `in`.rcard.kactor.spawn
@@ -25,8 +24,8 @@ object SpawningActor {
         data class SayHello(val name: String, val replyTo: KActorRef<ReplyReceived>)
 
         val behavior: KBehavior<SayHello> =
-            receiveMessage { msg ->
-                println("Hello ${msg.name}!")
+            receive { ctx, msg ->
+                ctx.log().info("Hello ${msg.name}!")
                 msg.replyTo `!` ReplyReceived
                 same()
             }

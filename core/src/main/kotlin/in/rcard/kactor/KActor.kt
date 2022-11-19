@@ -73,19 +73,17 @@ class KActorContext<T> internal constructor(
     name: String,
     internal val scope: CoroutineScope = CoroutineScope(SupervisorJob())
 ) {
-    internal val logger: Logger = LoggerFactory.getLogger(name)
+    val log: Logger = LoggerFactory.getLogger(name)
 }
 
-fun KActorContext<*>.log(): Logger = logger
-
 fun <T> KActorContext<*>.spawn(name: String, behavior: KBehavior<T>): KActorRef<T> {
-    val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
     val job = resolveJob(behavior)
-    scope.launch(CoroutineName("kactor-$name") + job + MDCContext(mapOf("kactor" to name))) {
-        val actor = KActor(name, mailbox, this)
-        actor.run(behavior)
-    }
-    return KActorRef(mailbox)
+    return spawnKActor(
+        name,
+        behavior,
+        scope,
+        CoroutineName("kactor-$name") + job + MDCContext(mapOf("kactor" to name))
+    )
 }
 
 private fun <T> resolveJob(behavior: KBehavior<T>): CoroutineContext =
@@ -99,6 +97,29 @@ private fun <T> resolveJob(behavior: KBehavior<T>): CoroutineContext =
 
         else -> Job()
     }
+
+fun <T> CoroutineScope.kactorSystem(behavior: KBehavior<T>): KActorRef<T> {
+    return spawnKActor(
+        "kactor-system",
+        behavior,
+        this,
+        CoroutineName("kactor-system") + MDCContext(mapOf("kactor" to "kactor-system"))
+    )
+}
+
+private fun <T> spawnKActor(
+    name: String,
+    behavior: KBehavior<T>,
+    scope: CoroutineScope,
+    context: CoroutineContext
+): KActorRef<T> {
+    val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
+    scope.launch(context) {
+        val actor = KActor(name, mailbox, this)
+        actor.run(behavior)
+    }
+    return KActorRef(mailbox)
+}
 
 fun <T, R> CoroutineScope.ask(
     toKActorRef: KActorRef<T>,
@@ -118,13 +139,4 @@ fun <T, R> CoroutineScope.ask(
         }
     }
     return result
-}
-
-fun <T> CoroutineScope.kactorSystem(behavior: KBehavior<T>): KActorRef<T> {
-    val mailbox = Channel<T>()
-    launch {
-        val actor = KActor("main", mailbox, this)
-        actor.run(behavior)
-    }
-    return KActorRef(mailbox)
 }

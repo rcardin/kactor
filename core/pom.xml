@@ -10,13 +10,17 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
+  <properties>
+    <slf4j-api.version>2.0.3</slf4j-api.version>
+  </properties>
+
   <artifactId>kactor-core</artifactId>
 
   <dependencies>
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>1.4.4</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j-api.version}</version>
     </dependency>
   </dependencies>
 </project>

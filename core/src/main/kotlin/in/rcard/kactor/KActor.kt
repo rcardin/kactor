@@ -148,7 +148,7 @@ fun <T, R> CoroutineScope.ask(
     timeoutInMillis: Long = 1000L,
     msgFactory: (ref: KActorRef<R>) -> T
 ): Deferred<R> {
-    val mailbox = Channel<R>() // TODO Configure it properly
+    val mailbox = Channel<R>(capacity = Channel.RENDEZVOUS)
     val result = async {
         try {
             withTimeout(timeoutInMillis) {

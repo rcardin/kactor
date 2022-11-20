@@ -121,12 +121,34 @@ private fun <T> spawnKActor(
     return KActorRef(mailbox)
 }
 
+// FIXME: Design could be improved
+/**
+ * FIFO queue of messages.
+ */
+fun <T> KActorContext<*>.router(name: String, poolSize: Int, behavior: KBehavior<T>): KActorRef<T> {
+    val job = resolveJob(behavior)
+    val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
+
+    repeat(poolSize) {
+        val context =
+            CoroutineName("kactor-routee-$name-$it") +
+                job +
+                MDCContext(mapOf("kactor" to "kactor-routee-$name-$it"))
+        scope.launch(context) {
+            val actor = KActor(name, mailbox, this)
+            actor.run(behavior)
+        }
+    }
+
+    return KActorRef(mailbox)
+}
+
 fun <T, R> CoroutineScope.ask(
     toKActorRef: KActorRef<T>,
     timeoutInMillis: Long = 1000L,
     msgFactory: (ref: KActorRef<R>) -> T
 ): Deferred<R> {
-    val mailbox = Channel<R>()
+    val mailbox = Channel<R>() // TODO Configure it properly
     val result = async {
         try {
             withTimeout(timeoutInMillis) {

@@ -16,6 +16,42 @@ One of the most famous implementation of the actor model is [Akka](https://akka.
 
 In Kotlin, we have **coroutines**, which are a form of lightweight threads. Coroutines are a great fit for the actor model, because they are cheap to create, and they can be suspended and resumed at any time. In this project, we will implement the actor model using coroutines. In detail, we will implement something strictly inspired to the API offered by the [Akka Typed library](https://doc.akka.io/docs/akka/current/typed/index.html).
 
+### TL;DR
+
+This section gives a brief overview of the main feature of the `kactor` library. For a more detailed explanation, please refer to the following sections.
+
+First of all, we'll define the behavior of an actor. Let's say we want to implement a counter. The counter can be incremented and decremented. The counter can also be reset to zero. The counter can also be queried for its current value. The behavior of the counter is defined as follows:
+
+```kotlin
+object Counter {
+    sealed interface Command
+    data class Increment(val by: Int) : Command
+    data class Decrement(val by: Int) : Command
+    object Reset : Command
+    data class GetValue(val replyTo: KActorRef<Int>) : Command
+
+    fun behavior(currentValue: Int): KBehavior<Command> = receiveMessage { msg ->
+        when (msg) {
+            is Counter.Increment -> behavior(currentValue + msg.by)
+            is Counter.Decrement -> behavior(currentValue - msg.by)
+            is Counter.Reset -> behavior(0)
+            is Counter.GetValue -> {
+                msg.replyTo `!` currentValue
+                same()
+            }
+        }
+    }
+}
+```
+
+First of all, we list the messages this actor listens to. Then, we defined the behavior the actor must use to respond to the above commands. We use the `receiveMessage` behavior builder, which is a helper function that allows us to write the behavior of the actor as a function of the message received. The `receiveMessage` function takes a function as input, and returns a `KBehavior<Command>`.
+
+We manage the change of the actor state, `currentValue` as the input of a function. 
+
+In case of a query, we use the actor reference, `KActorRef<Int>`, contained in the message to send the response. The _bang_ function is an alias for the `tell` method, used to send a message to an actor.
+
+
+
 ## Create an Actor
 
 Creating an actor is quite easy. However, there are two different kind of actors: The actor system and all the other actors. The actor system is the root of the actor hierarchy. It is the first actor that is created. We can create an actor system using the `kactorSystem` actor builder:

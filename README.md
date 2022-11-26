@@ -20,20 +20,24 @@ In Kotlin, we have **coroutines**, which are a form of lightweight threads. Coro
 
 This section gives a brief overview of the main feature of the `kactor` library. For a more detailed explanation, please refer to the following sections.
 
-First of all, we'll define the behavior of an actor. Let's say we want to implement a counter. The counter can be incremented and decremented. The counter can also be reset to zero. The counter can also be queried for its current value. The behavior of the counter is defined as follows:
+First of all, we'll define the messages the actor accepts. Let's say we want to implement a counter. The counter can be incremented. The counter can also be reset to zero. The counter can also be queried for its current value:
 
 ```kotlin
 object Counter {
     sealed interface Command
     data class Increment(val by: Int) : Command
-    data class Decrement(val by: Int) : Command
     object Reset : Command
     data class GetValue(val replyTo: KActorRef<Int>) : Command
+}
+```
 
+Then, we defined the behavior the actor must use to respond to the above commands. We use the `receiveMessage` behavior builder, which is a helper function that allows us to write the behavior of the actor as a function of the message received. The `receiveMessage` function takes a function as input, and returns a `KBehavior<Command>`. The function receives in input the next message to process: 
+
+```kotlin
+object Counter {
     fun behavior(currentValue: Int): KBehavior<Command> = receiveMessage { msg ->
         when (msg) {
             is Counter.Increment -> behavior(currentValue + msg.by)
-            is Counter.Decrement -> behavior(currentValue - msg.by)
             is Counter.Reset -> behavior(0)
             is Counter.GetValue -> {
                 msg.replyTo `!` currentValue
@@ -44,13 +48,50 @@ object Counter {
 }
 ```
 
-First of all, we list the messages this actor listens to. Then, we defined the behavior the actor must use to respond to the above commands. We use the `receiveMessage` behavior builder, which is a helper function that allows us to write the behavior of the actor as a function of the message received. The `receiveMessage` function takes a function as input, and returns a `KBehavior<Command>`.
+We manage the actor state in a functional way, passing it as an input of the next behavior to have. In case no change to the behavior is required, we can use the `same()` function, which returns the same behavior as before.
 
-We manage the change of the actor state, `currentValue` as the input of a function. 
+In case of a query, we use the actor reference, `KActorRef<Int>`, contained in the message to send the response. The _bang_ function is an alias for the `tell` method, used to send a message to an actor through its reference.
 
-In case of a query, we use the actor reference, `KActorRef<Int>`, contained in the message to send the response. The _bang_ function is an alias for the `tell` method, used to send a message to an actor.
+The actual creation of the above actor requires the definition of an _actor system_ first, which is a special actor that manages the creation of the context needed by all the other actors. First, we need to define the behavior of the actor system:
 
+```kotlin
+object MainActor {
+    
+    val behavior: KBehavior<Int> = setup { ctx ->
+        val counterRef = ctx.spawn("counter", Counter.behavior(0))
+        
+        counterRef `!` Counter.Increment(40)
+        counterRef `!` Counter.Increment(2)
+        counterRef `!` Counter.GetValue(ctx.actorRef)
+        counterRef `!` Counter.Reset
+        counterRef `!` Counter.GetValue(ctx.actorRef)
+        
+        receiveMessage { msg ->
+            ctx.log.info("The counter value is $msg")
+            same()
+        }
+    }
+}
+```
 
+In the above case, we introduced the `setup` behavior builder, which defines the operation to execute during the actor creation. In detail, we `spawn` the counter actor, using the `KActorContext<T>` instance provided to each actor during the creation. The `spawn` method returns a reference the freshly new created actor. which we can use to send messages to it. Moreover, through the context, we can retrieve a reference to the actor itself. 
+
+Finally, we defined the behavior of the `MainActor`, which is merely logging the retrieved value of the counter. We can access to an instance of the logger through the context instance.
+
+With the behavior of the actor system defined, we can create the actor system itself:
+
+```kotlin
+suspend fun main(): Unit = coroutineScope {
+    kactorSystem(MainActor.behavior)
+}
+```
+
+The `kactorSystem` function is an extension function of the `CoroutineScope` class. So, we need to create a scope first, which is done using the `coroutineScope` suspending function. The execution of the above program will produce an output similar to the following
+
+```
+15:20:56.618 [DefaultDispatcher-worker-3] [{kactor=kactor-system}] INFO  kactor-system - The counter value is 42
+15:20:56.624 [DefaultDispatcher-worker-3] [{kactor=kactor-system}] INFO  kactor-system - The counter value is 0
+```
 
 ## Create an Actor
 

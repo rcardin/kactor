@@ -93,6 +93,15 @@ The `kactorSystem` function is an extension function of the `CoroutineScope` cla
 15:20:56.624 [DefaultDispatcher-worker-3] [{kactor=kactor-system}] INFO  kactor-system - The counter value is 0
 ```
 
+## Main Types
+
+The whole library is based on top of only few types. In details, the main types are:
+
+* `KBehavior<T>`: It represents the behavior of an actor that accepts messages of type `T`. The behavior defines how the actor reacts to the external messages.
+* `KActor<T>`: It represents an actor that accepts messages of type `T`. It's behavior is fully defined by a `KBehavior<T>` object.
+* `KActorRef<T>`: It represents a reference to an actor. Through it. it's possible to send messages to actors.
+* `KActorContext<T>`: It gives access to some important feature to actors. Each actor owns a context. For example, through it, the actor can access to the reference to itself, to the logger, to its name.
+
 ## Create an Actor
 
 Creating an actor is quite easy. However, there are two different kind of actors: The actor system and all the other actors. The actor system is the root of the actor hierarchy. It is the first actor that is created. We can create an actor system using the `kactorSystem` actor builder:

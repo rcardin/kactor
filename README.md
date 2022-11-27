@@ -16,7 +16,7 @@ One of the most famous implementation of the actor model is [Akka](https://akka.
 
 In Kotlin, we have **coroutines**, which are a form of lightweight threads. Coroutines are a great fit for the actor model, because they are cheap to create, and they can be suspended and resumed at any time. In this project, we will implement the actor model using coroutines. In detail, we will implement something strictly inspired to the API offered by the [Akka Typed library](https://doc.akka.io/docs/akka/current/typed/index.html).
 
-### TL;DR
+### Getting Started
 
 This section gives a brief overview of the main feature of the `kactor` library. For a more detailed explanation, please refer to the following sections.
 

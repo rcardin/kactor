@@ -108,9 +108,70 @@ An actor behavior is a function that defines how an actor should react to a mess
 
 The only way to create an instance of the type `KBehavior<T>` is through the available builders. Let's see which are the ones available.
 
+### The `receiveMessage` Builder
+
+The `receiveMessage` builder is the most basic one. It allows to define the behavior of an actor as a function of the message received. The function passed to the builder must return a new behavior. The new behavior will be used to process the next message. 
+
+```kotlin
+object Counter {
+    // ...
+    fun behavior(currentValue: Int): KBehavior<Command> = receiveMessage { msg ->
+        when (msg) {
+            is Increment -> behavior(currentValue + msg.by)
+            is Reset -> behavior(0)
+            // ...
+        }
+    }
+}
+```
+
+
 ### The `setup` Builder
 
-The first behavior builder we see is the `setup` builder. It allows to configure all the aspect of the behavior of an actor that are not strictly related to the processing of a message. In the example we have seen before, we used the `setup` builder to create an actor that spawns another actor. The `setup` builder takes a function that takes a `KactorContext<T>` and returns a `KActorBehavior<T>`.
+The `setup` builder is useful to perform some initialization operations before the actor starts processing messages. For example, we can use it to create other actors, to initialize the state of the actor, and so on.
+
+It allows to access the instance of the `KactorContext<T>` of an actor:
+
+```kotlin
+object MainActor {
+
+    val behavior: KBehavior<Int> = setup { ctx ->
+        val counterRef = ctx.spawn("counter", Counter.behavior(0))
+// ...
+    }
+}
+```
+
+Through the context, it's possible to create new actors, to access to the reference and the name of the actor itself, and to a logger:
+
+```kotlin
+ctx.log.info("Getting the value of the counter")
+counterRef `!` Counter.GetValue(ctx.actorRef)
+```
+
+The function in input to the `setup` builder must return a behavior. So, usually, we use one of the other builders to to define the returned behavior. 
+
+### The `same` Builder
+
+The `same` builder is a builder that returns the same behavior as before. It's useful when the actor does not need to change its behavior:
+
+```kotlin
+object Counter {
+    // ...
+    fun behavior(currentValue: Int): KBehavior<Command> = receiveMessage { msg ->
+        when (msg) {
+            // ...
+            is GetValue -> {
+                msg.replyTo `!` currentValue
+                same()  // No change to the behavior is required
+            }
+        }
+    }
+}
+```
+
+It's not possible to create the main behavior of an actor using the `same` builder directly. Doing it will result in an exception at runtime.
+
 
 ## Create an Actor
 

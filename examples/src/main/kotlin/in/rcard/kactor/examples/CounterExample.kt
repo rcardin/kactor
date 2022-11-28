@@ -22,6 +22,7 @@ object CounterExample {
 
             counterRef `!` Counter.Increment(40)
             counterRef `!` Counter.Increment(2)
+            ctx.log.info("Getting the value of the counter")
             counterRef `!` Counter.GetValue(ctx.actorRef)
             counterRef `!` Counter.Reset
             counterRef `!` Counter.GetValue(ctx.actorRef)

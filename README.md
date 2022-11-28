@@ -99,8 +99,18 @@ The whole library is based on top of only few types. In details, the main types 
 
 * `KBehavior<T>`: It represents the behavior of an actor that accepts messages of type `T`. The behavior defines how the actor reacts to the external messages.
 * `KActor<T>`: It represents an actor that accepts messages of type `T`. It's behavior is fully defined by a `KBehavior<T>` object.
-* `KActorRef<T>`: It represents a reference to an actor. Through it. it's possible to send messages to actors.
+* `KActorRef<T>`: It represents a reference to an actor. Through it, it's possible to send messages to actors.
 * `KActorContext<T>`: It gives access to some important feature to actors. Each actor owns a context. For example, through it, the actor can access to the reference to itself, to the logger, to its name.
+
+## Actor Behavior
+
+An actor behavior is a function that defines how an actor should react to a message. In detail, an actor behavior is a function that takes a message and returns a new behavior. The new behavior will be used to process the next message. We represent an actor behavior with the type `KBehavior<T>`. The type parameter `T` represents the type of the messages that the actor can process.
+
+The only way to create an instance of the type `KBehavior<T>` is through the available builders. Let's see which are the ones available.
+
+### The `setup` Builder
+
+The first behavior builder we see is the `setup` builder. It allows to configure all the aspect of the behavior of an actor that are not strictly related to the processing of a message. In the example we have seen before, we used the `setup` builder to create an actor that spawns another actor. The `setup` builder takes a function that takes a `KactorContext<T>` and returns a `KActorBehavior<T>`.
 
 ## Create an Actor
 
@@ -124,18 +134,6 @@ val behavior = setup { ctx ->
 ```
 
 The `spawn` builder is defined as an extension function of a `KactorContext<T>`. The `KactorContext<T>` is the context of an actor, giving access to a lot of functionalities. We can obtain a context using some of the behavior builders. In the above example, we used the `setup` builder.
-
-## Actor Behavior
-
-An actor behavior is a function that defines how an actor should react to a message. In detail, an actor behavior is a function that takes a message and returns a new behavior. The new behavior will be used to process the next message. All the actor builders we have seen so far require a behavior in input.
-
-We represent an actor behavior with the type `KBehavior<T>`. The type parameter `T` represents the type of the messages that the actor can process.
-
-We can create a behavior using one of the available builders. Let's see which are available in the library.
-
-### The `setup` Builder
-
-The first behavior builder we see is the `setup` builder. It allows to configure all the aspect of the behavior of an actor that are not strictly related to the processing of a message. In the example we have seen before, we used the `setup` builder to create an actor that spawns another actor. The `setup` builder takes a function that takes a `KactorContext<T>` and returns a `KActorBehavior<T>`. 
 
 ## Disclosure
 

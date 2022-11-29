@@ -110,7 +110,7 @@ The only way to create an instance of the type `KBehavior<T>` is through the ava
 
 ### The `receiveMessage` Builder
 
-The `receiveMessage` builder is the most basic one. It allows to define the behavior of an actor as a function of the message received. The function passed to the builder must return a new behavior. The new behavior will be used to process the next message. 
+The `receiveMessage` builder is the most basic one. It allows to define the behavior of an actor as a function of the message received. The function passed to the builder must return a new behavior, that will be used to process the next message:
 
 ```kotlin
 object Counter {
@@ -149,7 +149,25 @@ ctx.log.info("Getting the value of the counter")
 counterRef `!` Counter.GetValue(ctx.actorRef)
 ```
 
-The function in input to the `setup` builder must return a behavior. So, usually, we use one of the other builders to to define the returned behavior. 
+The function in input to the `setup` builder must return a behavior. So, usually, we use one of the other builders to to define the returned behavior, such as the `receiveMessage` or the `receive` builders.
+
+### The `receive` Builder
+
+If we need to define the behavior used to process incoming messages and we also need to access to feature available in the context, we can use the `receive` builder:
+
+```kotlin
+object HelloWorldActor {
+    
+    data class SayHello(val name: String, val replyTo: KActorRef<ReplyReceived>)
+    
+    val behavior: KBehavior<SayHello> =
+        receive { ctx, msg ->
+            ctx.log.info("Hello ${msg.name}!")
+            msg.replyTo `!` ReplyReceived
+            same()
+        }
+}
+```
 
 ### The `same` Builder
 
@@ -172,6 +190,29 @@ object Counter {
 
 It's not possible to create the main behavior of an actor using the `same` builder directly. Doing it will result in an exception at runtime.
 
+### The `stopped` Builder
+
+Sometimes, after doing some processing, we need just to stop an actor. In this case, we can use the `stopped` builder, which creates a behavior that tells to the actor system to stop the actor:
+
+```kotlin
+object MainActor {
+
+    object Start
+
+    fun behavior(): KBehavior<Start> =
+        setup { ctx ->
+            val routeRef = ctx.router("greeter", 1000, Greeter.behavior)
+            repeat(1000) {
+                routeRef `!` Greeter.Greet(it)
+            }
+            stopped()
+        }
+}
+```
+
+In the above example, after creating a router actor, and sending 1000 messages to it, we simply stop the actor.
+
+⚠️ Feature still under development: Children actors are not stopped when the parent stops ⚠️
 
 ## Create an Actor
 

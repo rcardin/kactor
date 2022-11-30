@@ -269,7 +269,25 @@ data class GetValue(val replyTo: KActorRef<Int>) : Command
 
 ### The `ask` Pattern
 
-TODO
+The tell pattern we used so far models a communication where the sender does not expect any response from the receiver. We can say, it's _fire and forget_. However, sometimes we need to send a message to an actor and wait for a response. In this case, we can use the `ask` pattern. The `ask` pattern is a way to send a message to an actor and wait for a response:
+
+```kotlin
+suspend fun askPattern() = coroutineScope {
+    val tellerActor = kactorSystem(TellerActor.behavior)
+
+    val deferred: Deferred<Answer> = ask(tellerActor) { ref ->
+        TellerActor.Question(ref)
+    }
+
+    println("The answer is: ${deferred.await().msg}")
+}
+```
+
+Since the library defines the `ask` function as an extension method of the `CoroutinScope` type, we an instance of a scope to run the function.
+
+The first parameter of the `ask` function is the reference to the actor that will receive the message. The second parameter is a function that takes as input a reference to the actor that will send the request (this actor is implicitly created by the library), and returns the message to send.
+
+The output of the `ask` function is a `Deferred<T>`, where `T` is the type of the response.
 
 ## Disclosure
 

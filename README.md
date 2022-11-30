@@ -224,18 +224,52 @@ coroutineScope {
 }
 ``` 
 
-Since the builder is an extension function of a `CoroutineScope`, we need a scope to create an actor system. To create an actor we need a behavior (more in the following sections). The creation of the actor system returns a reference to the created actor. As we will see, we can use such reference to send messages to the actor.
+Since the builder is an extension function of a `CoroutineScope`, we need a scope to create an actor system. To create an actor we need a behavior (more in the following sections). The creation of the actor system returns a reference to the created actor, and we can use such reference to send messages to the new freshly created actor.
 
 Once we have an actor system defined, we can _spawn_ other actors. To do so, we can use the `spawn` actor builder:
 
 ```kotlin
-object ReplyReceived
 val behavior = setup { ctx -> 
     val helloWorldActorRef = ctx.spawn("kactor_$i", HelloWorldActor.behavior)
 }
 ```
 
-The `spawn` builder is defined as an extension function of a `KactorContext<T>`. The `KactorContext<T>` is the context of an actor, giving access to a lot of functionalities. We can obtain a context using some of the behavior builders. In the above example, we used the `setup` builder.
+The `spawn` builder is defined as an extension function of the `KactorContext<T>`. As we already saw in previous sections, we can retrieve an actor context using the `setup` and the `receive` behavior builders. In the above example, we used the `setup` builder. Every actor other than the actor system has a name, which is passed as a parameter during actor creation.
+
+## Sending Messages to an Actor
+
+The only possible way to send messages to an actor is through its reference. A reference to an actor has type `KActorRef<T>`, where `T` is the type of the messages that the actor can process. We can obtain a reference to an actor during its creation:
+
+```kotlin
+val helloWorldActorRef: KActorRef<SayHello> = ctx.spawn("kactor_$i", HelloWorldActor.behavior)
+```
+
+Moreover, every actor context stores an actor reference to the actor itself:
+
+```kotlin
+SayHello("Actor $i", ctx.actorRef)
+```
+
+Sending a message to an actor through its reference is quite easy. We can use the `fun tell(msg: T)` function, or the function `fun `!`(msg: T)`, which is an alias for `tell`:
+
+```kotlin
+helloWorldActorRef.tell(SayHello("Actor $i", ctx.actorRef))
+// ..or..
+helloWorldActorRef `!` SayHello("Actor $i", ctx.actorRef)
+```
+
+A common best practice is to define a hierarchy of types representing the messages that an actor can process. In this way, we can use the type system to ensure that we are sending the right message to the right actor:
+
+```kotlin
+sealed interface Command
+data class Increment(val by: Int) : Command
+object Reset : Command
+data class GetValue(val replyTo: KActorRef<Int>) : Command
+```
+
+### The `ask` Pattern
+
+TODO
 
 ## Disclosure
 

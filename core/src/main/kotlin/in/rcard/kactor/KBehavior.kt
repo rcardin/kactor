@@ -1,6 +1,9 @@
 package `in`.rcard.kactor
 
-sealed interface KBehavior<T>
+sealed interface KBehavior<T> {
+    val blocking: Boolean
+        get() = false
+}
 
 internal object KBehaviorSame : KBehavior<Nothing>
 
@@ -51,3 +54,4 @@ fun <T> stopped(): KBehavior<T> = KBehaviorStop as KBehavior<T>
 
 fun <T> supervise(supervisedBehavior: KBehavior<T>, withStrategy: SupervisorStrategy): KBehavior<T> =
     KBehaviorSupervised(supervisedBehavior, withStrategy)
+

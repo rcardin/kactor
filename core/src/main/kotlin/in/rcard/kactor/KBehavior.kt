@@ -23,14 +23,24 @@ internal class KBehaviorSetup<T>(private val setupBehavior: suspend (ctx: KActor
     }
 }
 
+internal abstract class KBehaviorDecorator<T>(internal val decorated: KBehavior<T>) : KBehavior<T> {
+    override val blocking: Boolean
+        get() = decorated.blocking
+}
+
 internal class KBehaviorSupervised<T>(
-    val supervisedBehavior: KBehavior<T>,
+    supervisedBehavior: KBehavior<T>,
     val strategy: SupervisorStrategy = SupervisorStrategy.ESCALATE
-) : KBehavior<T>
+) : KBehaviorDecorator<T>(supervisedBehavior)
 
 enum class SupervisorStrategy {
     STOP,
     ESCALATE
+}
+
+internal class KBehaviorBlocking<T>(decorated: KBehavior<T>) : KBehaviorDecorator<T>(decorated) {
+    override val blocking: Boolean
+        get() = true
 }
 
 fun <T> setup(behavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>): KBehavior<T> =
@@ -52,6 +62,10 @@ fun <T> same(): KBehavior<T> = KBehaviorSame as KBehavior<T>
 @Suppress("UNCHECKED_CAST")
 fun <T> stopped(): KBehavior<T> = KBehaviorStop as KBehavior<T>
 
-fun <T> supervise(supervisedBehavior: KBehavior<T>, withStrategy: SupervisorStrategy): KBehavior<T> =
+fun <T> supervise(
+    supervisedBehavior: KBehavior<T>,
+    withStrategy: SupervisorStrategy
+): KBehavior<T> =
     KBehaviorSupervised(supervisedBehavior, withStrategy)
 
+fun <T> blocking(behavior: KBehavior<T>): KBehavior<T> = KBehaviorBlocking(behavior)

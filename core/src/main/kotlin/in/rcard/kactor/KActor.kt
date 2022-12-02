@@ -3,6 +3,7 @@ package `in`.rcard.kactor
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -45,9 +46,8 @@ internal class KActor<T>(
                 // TODO We should stop also all the children actors
             }
 
-            is KBehaviorSupervised -> {
-                // FIXME: Maybe, it's possible to use the KBehaviorExtension to handle the supervision
-                run(behavior.supervisedBehavior)
+            is KBehaviorDecorator -> {
+                run(behavior.decorated)
             }
         }
     }
@@ -77,13 +77,21 @@ class KActorContext<T> internal constructor(
 }
 
 fun <T> KActorContext<*>.spawn(name: String, behavior: KBehavior<T>): KActorRef<T> {
-    val job = resolveJob(behavior)
     return spawnKActor(
         name,
         behavior,
         scope,
-        CoroutineName("kactor-$name") + job + MDCContext(mapOf("kactor" to name))
+        buildContext(name, behavior)
     )
+}
+
+private fun buildContext(
+    name: String,
+    behavior: KBehavior<*>
+): CoroutineContext {
+    val job = resolveJob(behavior)
+    val dispatcher = resolveDispatcher(behavior)
+    return CoroutineName("kactor-$name") + job + dispatcher + MDCContext(mapOf("kactor" to name))
 }
 
 private fun <T> resolveJob(behavior: KBehavior<T>): CoroutineContext =
@@ -97,6 +105,10 @@ private fun <T> resolveJob(behavior: KBehavior<T>): CoroutineContext =
 
         else -> Job()
     }
+
+fun <T> resolveDispatcher(behavior: KBehavior<T>): CoroutineContext =
+    if (behavior.blocking) Dispatchers.IO
+    else Dispatchers.Default
 
 fun <T> CoroutineScope.kactorSystem(behavior: KBehavior<T>): KActorRef<T> {
     return spawnKActor(

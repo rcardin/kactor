@@ -1,6 +1,6 @@
 package `in`.rcard.kactor.examples
 
-import `in`.rcard.kactor.examples.CounterExample.counterExample
+import `in`.rcard.kactor.examples.BlockingKActorExample.blockingKActorExample
 import kotlinx.coroutines.coroutineScope
 
 // FIXME Just for testing purposes. Delete it in the near future
@@ -11,5 +11,6 @@ suspend fun main(): Unit = coroutineScope {
 //    receiveMessagePattern()
 //    exceptionHandling()
 //    routerPattern()
-    counterExample()
+//    counterExample()
+    blockingKActorExample()
 }

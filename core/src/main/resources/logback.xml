@@ -7,7 +7,7 @@
 
     <appender name="STDOUT" class="ConsoleAppender">
         <encoder class="PatternLayoutEncoder">
-            <pattern>%d{HH:mm:ss.SSS} [%thread] [{%mdc}] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d [%thread] [{%mdc}] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 

@@ -289,6 +289,44 @@ The first parameter of the `ask` function is the reference to the actor that wil
 
 The output of the `ask` function is a `Deferred<T>`, where `T` is the type of the response.
 
+## Logging
+
+The library provides a logging facility that can be used to log messages from actors. The logging facility is based on the Slf4j library, backed by the logback library. To use log, we need to import at least the following dependency in the `pom.xml` file:
+
+```xml
+<dependency>
+  <groupId>ch.qos.logback</groupId>
+  <artifactId>logback-classic</artifactId>
+  <version>${logback.version}</version>
+</dependency>
+```
+
+Every actor can access its own logger using the `log` property of the actor context:
+
+```kotlin
+object HelloWorldActor {
+    data class SayHello(val name: String, val replyTo: KActorRef<ReplyReceived>)
+
+    val behavior: KBehavior<SayHello> = receive { ctx, msg ->
+            ctx.log.info("Hello ${msg.name}!")
+            msg.replyTo `!` ReplyReceived
+            same()
+    }
+}
+```
+
+The `log` property is an instance of the `org.slf4j.Logger` interface, and it logs information using the following pattern:
+
+```
+%d [%thread] [{%mdc}] %-5level %logger{36} - %msg%n
+```
+
+Inside the `MDC` map, every actor put its name with the `kactor` key. An example of a log message is the following:
+
+```
+2022-12-04 15:20:35,850 [DefaultDispatcher-worker-2] [{kactor=kactor_0}] INFO  kactor_0 - Hello Actor 0!
+```
+
 ## Disclosure
 
 I know that in the `kotlinx-coroutines-core`library there is a coroutine builder called `actor<T>` that uses `Channel`s to build a representation of an actor. However, I need to learn coroutines. So, why don't reimplement an actor model from scratch? 😜

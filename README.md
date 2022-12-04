@@ -289,6 +289,20 @@ The first parameter of the `ask` function is the reference to the actor that wil
 
 The output of the `ask` function is a `Deferred<T>`, where `T` is the type of the response.
 
+## Blocking Behaviors
+
+The `kactor` library is heavenly based on Kotlin coroutines. In such environment, blocking a thread is not a good practice since the effect is that the thread is not available for other coroutines. However, sometimes we need to block a thread. For example, we can have a behavior that reads from a file, and we need to wait for the file to be read. In this case, we can use the `blocking` behavior builder:
+
+```kotlin
+fun behavior(): KBehavior<Start> = receive { ctx, _ ->
+    val fileReader = ctx.spawn("fileReader", blocking(FileReader.behavior))
+    fileReader `!` FileReader.ReadFile("/file.txt")
+    same()
+}
+```
+
+If we surround a behavior with the `blocking` builder, we are configuring the coroutine executing the it to use the `Dispatchers.IO` dispatcher. This dispatcher is backed by a thread pool that is optimized for blocking operations. In this way, we can block a thread without blocking other coroutines.
+
 ## Logging
 
 The library provides a logging facility that can be used to log messages from actors. The logging facility is based on the Slf4j library, backed by the logback library. To use log, we need to import at least the following dependency in the `pom.xml` file:

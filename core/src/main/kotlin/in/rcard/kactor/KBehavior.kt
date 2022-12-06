@@ -69,3 +69,6 @@ fun <T> supervise(
     KBehaviorSupervised(supervisedBehavior, withStrategy)
 
 fun <T> blocking(behavior: KBehavior<T>): KBehavior<T> = KBehaviorBlocking(behavior)
+
+fun <T> withTimers(timedBehavior: suspend (timer: TimerScheduler) -> KBehavior<T>): KBehavior<T> =
+    TODO()

@@ -37,7 +37,7 @@ object SpawningActor {
             setup { ctx ->
                 for (i in 0..100) {
                     val helloWorldActorRef = ctx.spawn("kactor_$i", HelloWorldActor.behavior)
-                    helloWorldActorRef `!` HelloWorldActor.SayHello("Actor $i", ctx.actorRef)
+                    helloWorldActorRef `!` HelloWorldActor.SayHello("Actor $i", ctx.self)
                     ctx.log.info("Sent message to actor $i")
                 }
                 receiveAndCount(0)

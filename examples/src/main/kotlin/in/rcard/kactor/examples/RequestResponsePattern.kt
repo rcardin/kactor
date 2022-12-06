@@ -56,7 +56,7 @@ object RequestResponsePattern {
             receive { ctx, msg ->
                 when (msg) {
                     is Start -> {
-                        teller `!` TellerActor.Question(ctx.actorRef)
+                        teller `!` TellerActor.Question(ctx.self)
                     }
 
                     is Answer -> {

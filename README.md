@@ -62,9 +62,9 @@ object MainActor {
         
         counterRef `!` Counter.Increment(40)
         counterRef `!` Counter.Increment(2)
-        counterRef `!` Counter.GetValue(ctx.actorRef)
+        counterRef `!` Counter.GetValue(ctx.self)
         counterRef `!` Counter.Reset
-        counterRef `!` Counter.GetValue(ctx.actorRef)
+        counterRef `!` Counter.GetValue(ctx.self)
         
         receiveMessage { msg ->
             ctx.log.info("The counter value is $msg")
@@ -146,7 +146,7 @@ Through the context, it's possible to create new actors, to access to the refere
 
 ```kotlin
 ctx.log.info("Getting the value of the counter")
-counterRef `!` Counter.GetValue(ctx.actorRef)
+counterRef `!` Counter.GetValue(ctx.self)
 ```
 
 The function in input to the `setup` builder must return a behavior. So, usually, we use one of the other builders to to define the returned behavior, such as the `receiveMessage` or the `receive` builders.
@@ -247,15 +247,15 @@ val helloWorldActorRef: KActorRef<SayHello> = ctx.spawn("kactor_$i", HelloWorldA
 Moreover, every actor context stores an actor reference to the actor itself:
 
 ```kotlin
-SayHello("Actor $i", ctx.actorRef)
+SayHello("Actor $i", ctx.self)
 ```
 
 Sending a message to an actor through its reference is quite easy. We can use the `fun tell(msg: T)` function, or the function `fun `!`(msg: T)`, which is an alias for `tell`:
 
 ```kotlin
-helloWorldActorRef.tell(SayHello("Actor $i", ctx.actorRef))
+helloWorldActorRef.tell(SayHello("Actor $i", ctx.self))
 // ..or..
-helloWorldActorRef `!` SayHello("Actor $i", ctx.actorRef)
+helloWorldActorRef `!` SayHello("Actor $i", ctx.self)
 ```
 
 A common best practice is to define a hierarchy of types representing the messages that an actor can process. In this way, we can use the type system to ensure that we are sending the right message to the right actor:

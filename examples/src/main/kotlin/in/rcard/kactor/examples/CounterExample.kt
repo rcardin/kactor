@@ -23,9 +23,9 @@ object CounterExample {
             counterRef `!` Counter.Increment(40)
             counterRef `!` Counter.Increment(2)
             ctx.log.info("Getting the value of the counter")
-            counterRef `!` Counter.GetValue(ctx.actorRef)
+            counterRef `!` Counter.GetValue(ctx.self)
             counterRef `!` Counter.Reset
-            counterRef `!` Counter.GetValue(ctx.actorRef)
+            counterRef `!` Counter.GetValue(ctx.self)
 
             receiveMessage { msg ->
                 ctx.log.info("The counter value is $msg")

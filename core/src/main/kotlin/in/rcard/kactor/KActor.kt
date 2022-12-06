@@ -51,7 +51,7 @@ internal class KActor<T>(
             }
 
             is KBehaviorWithTimers -> {
-                val timerScheduler = TimerScheduler(ctx.scope, ctx.actorRef)
+                val timerScheduler = TimerScheduler(ctx.scope, ctx.self)
                 val newBehavior = behavior.timedBehavior(timerScheduler)
                 run(newBehavior)
             }
@@ -75,7 +75,7 @@ internal class KActor<T>(
 }
 
 class KActorContext<T> internal constructor(
-    val actorRef: KActorRef<T>,
+    val self: KActorRef<T>,
     name: String,
     internal val scope: CoroutineScope = CoroutineScope(SupervisorJob())
 ) {

@@ -43,6 +43,8 @@ internal class KBehaviorBlocking<T>(decorated: KBehavior<T>) : KBehaviorDecorato
         get() = true
 }
 
+internal class KBehaviorWithTimers<T>(internal val timedBehavior: suspend (timer: TimerScheduler<T>) -> KBehavior<T>) : KBehavior<T>
+
 fun <T> setup(behavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>): KBehavior<T> =
     KBehaviorSetup { ctx ->
         behavior(ctx)
@@ -70,5 +72,5 @@ fun <T> supervise(
 
 fun <T> blocking(behavior: KBehavior<T>): KBehavior<T> = KBehaviorBlocking(behavior)
 
-fun <T> withTimers(timedBehavior: suspend (timer: TimerScheduler) -> KBehavior<T>): KBehavior<T> =
+fun <T> withTimers(timedBehavior: suspend (timer: TimerScheduler<T>) -> KBehavior<T>): KBehavior<T> =
     TODO()

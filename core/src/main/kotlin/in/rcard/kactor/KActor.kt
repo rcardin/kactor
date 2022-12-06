@@ -49,6 +49,12 @@ internal class KActor<T>(
             is KBehaviorDecorator -> {
                 run(behavior.decorated)
             }
+
+            is KBehaviorWithTimers -> {
+                val timerScheduler = TimerScheduler(ctx.scope, ctx.actorRef)
+                val newBehavior = behavior.timedBehavior(timerScheduler)
+                run(newBehavior)
+            }
         }
     }
 

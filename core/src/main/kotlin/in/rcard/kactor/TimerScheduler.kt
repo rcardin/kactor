@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
-class TimerScheduler<K, T>(private val scope: CoroutineScope, private val actorRef: KActorRef<T>) {
+class TimerScheduler<T>(private val scope: CoroutineScope, private val actorRef: KActorRef<T>) {
 
-    private val timers = mutableMapOf<K, Job>()
-    suspend fun startSingleTimer(timerKey: K, msg: T, delayTime: Duration) {
+    private val timers = mutableMapOf<Any, Job>()
+    suspend fun <K : Any> startSingleTimer(timerKey: K, msg: T, delayTime: Duration) {
         val flowJob = scope.launch {
             flow {
                 while (true) {
@@ -26,7 +26,7 @@ class TimerScheduler<K, T>(private val scope: CoroutineScope, private val actorR
         timers[timerKey] = flowJob
     }
 
-    fun cancel(timerKey: K) {
+    fun <K : Any> cancel(timerKey: K) {
         timers[timerKey]?.cancel("Timer with key $timerKey cancelled")
     }
 }

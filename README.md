@@ -289,6 +289,50 @@ The first parameter of the `ask` function is the reference to the actor that wil
 
 The output of the `ask` function is a `Deferred<T>`, where `T` is the type of the response.
 
+## Scheduling Messages to Self
+
+Sometimes, we need to schedule a message to be sent to the actor itself at given time intervals. To do so, we need a sort of timers scheduler. The library provides a simple timers scheduler that can be used to schedule messages to self. To use the timers scheduler, we can use the `withTimers` builder:
+
+```kotlin
+fun behavior(): KBehavior<Tick> = setup { _ ->
+    withTimers { timers ->
+        timers.startSingleTimer(TimerKey, Tick, 1.seconds)
+        processTick(0, timers)
+    }
+}
+```
+
+The `withTimers` builder takes as input a function that takes as input a reference to the timers' scheduler, and returns a behavior. So, through the `timers` reference, we can define, start, and cancel how many timers we want.
+
+To start a new timer we must use the `startSingleTimer` function:
+
+```kotlin
+suspend fun <K : Any> startSingleTimer(timerKey: K, msg: T, delayTime: Duration)
+```
+
+The first parameter is the key of the timer, and it's used to identify the timer. The second parameter is the message to send to the actor when the timer expires. The third parameter is the delay time. The timer will be started when the `startSingleTimer` function is called, and the message will be sent to the actor at fixed intervals, every time the delay time expires. 
+
+When we don't need the timer anymore, we can cancel it using the `cancel` function:
+
+```kotlin
+fun <K : Any> cancel(timerKey: K)
+```
+
+For example, the example below shows how to handle a timer cancellation:
+
+```kotlin
+private fun processTick(counter: Int, timers: TimerScheduler<Tick>): KBehavior<Tick> =
+    receive { ctx, _ ->
+        ctx.log.info("Another second passed")
+        if (counter == 10) {
+            timers.cancel(TimerKey)
+            stopped()
+        } else {
+            processTick(counter + 1, timers)
+        }
+    }
+```
+
 ## Blocking Behaviors
 
 The `kactor` library is heavenly based on Kotlin coroutines. In such environment, blocking a thread is not a good practice since the effect is that the thread is not available for other coroutines. However, sometimes we need to block a thread. For example, we can have a behavior that reads from a file, and we need to wait for the file to be read. In this case, we can use the `blocking` behavior builder:

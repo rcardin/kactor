@@ -289,7 +289,7 @@ The first parameter of the `ask` function is the reference to the actor that wil
 
 The output of the `ask` function is a `Deferred<T>`, where `T` is the type of the response.
 
-## Scheduling Messages to Self
+### Scheduling Messages to Self
 
 Sometimes, we need to schedule a message to be sent to the actor itself at given time intervals. To do so, we need a sort of timers scheduler. The library provides a simple timers scheduler that can be used to schedule messages to self. To use the timers scheduler, we can use the `withTimers` builder:
 

@@ -385,6 +385,10 @@ Inside the `MDC` map, every actor put its name with the `kactor` key. An example
 2022-12-04 15:20:35,850 [DefaultDispatcher-worker-2] [{kactor=kactor_0}] INFO  kactor_0 - Hello Actor 0!
 ```
 
+## Acknowledgements
+
+The `kactor` library would not have been possible without the great book [Kotlin Coroutines Deep Dive](https://kt.academy/book/coroutines) by Marcin Moskała. The book is a great resource to learn about Kotlin coroutines, and it's a must-read for every Kotlin developer.
+
 ## Disclosure
 
 I know that in the `kotlinx-coroutines-core`library there is a coroutine builder called `actor<T>` that uses `Channel`s to build a representation of an actor. However, I need to learn coroutines. So, why don't reimplement an actor model from scratch? 😜

@@ -73,4 +73,4 @@ fun <T> supervise(
 fun <T> blocking(behavior: KBehavior<T>): KBehavior<T> = KBehaviorBlocking(behavior)
 
 fun <T> withTimers(timedBehavior: suspend (timer: TimerScheduler<T>) -> KBehavior<T>): KBehavior<T> =
-    TODO()
+    KBehaviorWithTimers(timedBehavior)

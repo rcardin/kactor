@@ -333,6 +333,32 @@ private fun processTick(counter: Int, timers: TimerScheduler<Tick>): KBehavior<T
     }
 ```
 
+### The Router Pattern
+
+Sometimes, we need to scale horizontally the number of actors of the same type. In details, what we need is a *router*. A router is a special kind of actor that handles incoming messages using a pool of coroutines. The coroutines in the pool read the messages using a FIFO algorithm.
+
+We can define a router actor quite easily, using the `router` function on the `KContext` object:
+
+```kotlin
+object MainActor {
+
+    object Start
+
+    fun behavior(): KBehavior<Start> =
+        setup { ctx ->
+            val routeRef = ctx.router("greeter", 1000, Greeter.behavior)
+            repeat(1000) {
+                routeRef `!` Greeter.Greet(it)
+            }
+            stopped()
+        }
+}
+```
+
+The first parameter of the `router` function is the name of the router, the second is the size of the pool, and the third is the behavior handling incoming messages. In the above example, the `Greeter` behavior is defined as a standard actor behavior.
+
+Be aware that all the coroutines in the pool are created when the router is created. 
+
 ## Blocking Behaviors
 
 The `kactor` library is heavenly based on Kotlin coroutines. In such environment, blocking a thread is not a good practice since the effect is that the thread is not available for other coroutines. However, sometimes we need to block a thread. For example, we can have a behavior that reads from a file, and we need to wait for the file to be read. In this case, we can use the `blocking` behavior builder:

@@ -43,7 +43,16 @@ internal class KBehaviorBlocking<T>(decorated: KBehavior<T>) : KBehaviorDecorato
         get() = true
 }
 
-internal class KBehaviorWithTimers<T>(internal val timedBehavior: suspend (timer: TimerScheduler<T>) -> KBehavior<T>) : KBehavior<T>
+internal class KBehaviorWithTimers<T>(internal val timedBehavior: suspend (timer: TimerScheduler<T>) -> KBehavior<T>) :
+    KBehavior<T>
+
+internal class KBehaviorWithResourceRelease<T>(
+    enclosedBehaviour: KBehavior<T>,
+    internal val release: (ex: Throwable?) -> Unit
+) : KBehaviorDecorator<T>(enclosedBehaviour)
+
+fun <T> KBehavior<T>.finally(release: (ex: Throwable?) -> Unit): KBehavior<T> =
+    KBehaviorWithResourceRelease(this, release)
 
 fun <T> setup(behavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>): KBehavior<T> =
     KBehaviorSetup { ctx ->

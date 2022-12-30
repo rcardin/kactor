@@ -100,14 +100,18 @@ private fun buildContext(
     return CoroutineName("kactor-$name") + job + dispatcher + MDCContext(mapOf("kactor" to name))
 }
 
-private fun <T> resolveJob(behavior: KBehavior<T>): CoroutineContext =
+private fun <T> resolveJob(behavior: KBehavior<T>): Job =
     when (behavior) {
+        is KBehaviorWithResourceRelease ->
+            resolveJob(behavior.decorated).apply { invokeOnCompletion { behavior.release } }
         is KBehaviorSupervised -> {
+            // FIXME What if we mix resources and supervision?
             when (behavior.strategy) {
                 SupervisorStrategy.STOP -> SupervisorJob()
                 SupervisorStrategy.ESCALATE -> Job()
             }
         }
+        is KBehaviorDecorator -> resolveJob(behavior.decorated)
 
         else -> Job()
     }

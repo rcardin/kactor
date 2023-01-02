@@ -82,12 +82,17 @@ class KActorContext<T> internal constructor(
     val log: Logger = LoggerFactory.getLogger(name)
 }
 
-fun <T> KActorContext<*>.spawn(name: String, behavior: KBehavior<T>): KActorRef<T> {
+fun <T> KActorContext<*>.spawn(
+    name: String,
+    behavior: KBehavior<T>,
+    finally: ((ex: Throwable?) -> Unit)? = null
+): KActorRef<T> {
     return spawnKActor(
         name,
         behavior,
         scope,
-        buildContext(name, behavior)
+        buildContext(name, behavior),
+        finally
     )
 }
 
@@ -129,13 +134,15 @@ private fun <T> spawnKActor(
     name: String,
     behavior: KBehavior<T>,
     scope: CoroutineScope,
-    context: CoroutineContext
+    context: CoroutineContext,
+    finally: ((ex: Throwable?) -> Unit)? = null
 ): KActorRef<T> {
     val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
-    scope.launch(context) {
+    val job = scope.launch(context) {
         val actor = KActor(name, mailbox, this)
         actor.run(behavior)
     }
+    finally?.apply { job.invokeOnCompletion(this) }
     return KActorRef(mailbox)
 }
 

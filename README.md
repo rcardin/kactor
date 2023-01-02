@@ -289,6 +289,76 @@ The first parameter of the `ask` function is the reference to the actor that wil
 
 The output of the `ask` function is a `Deferred<T>`, where `T` is the type of the response.
 
+### Scheduling Messages to Self
+
+Sometimes, we need to schedule a message to be sent to the actor itself at given time intervals. To do so, we need a sort of timers scheduler. The library provides a simple timers scheduler that can be used to schedule messages to self. To use the timers scheduler, we can use the `withTimers` builder:
+
+```kotlin
+fun behavior(): KBehavior<Tick> = setup { _ ->
+    withTimers { timers ->
+        timers.startSingleTimer(TimerKey, Tick, 1.seconds)
+        processTick(0, timers)
+    }
+}
+```
+
+The `withTimers` builder takes as input a function that takes as input a reference to the timers' scheduler, and returns a behavior. So, through the `timers` reference, we can define, start, and cancel how many timers we want.
+
+To start a new timer we must use the `startSingleTimer` function:
+
+```kotlin
+suspend fun <K : Any> startSingleTimer(timerKey: K, msg: T, delayTime: Duration)
+```
+
+The first parameter is the key of the timer, and it's used to identify the timer. The second parameter is the message to send to the actor when the timer expires. The third parameter is the delay time. The timer will be started when the `startSingleTimer` function is called, and the message will be sent to the actor at fixed intervals, every time the delay time expires. 
+
+When we don't need the timer anymore, we can cancel it using the `cancel` function:
+
+```kotlin
+fun <K : Any> cancel(timerKey: K)
+```
+
+For example, the example below shows how to handle a timer cancellation:
+
+```kotlin
+private fun processTick(counter: Int, timers: TimerScheduler<Tick>): KBehavior<Tick> =
+    receive { ctx, _ ->
+        ctx.log.info("Another second passed")
+        if (counter == 10) {
+            timers.cancel(TimerKey)
+            stopped()
+        } else {
+            processTick(counter + 1, timers)
+        }
+    }
+```
+
+### The Router Pattern
+
+Sometimes, we need to scale horizontally the number of actors of the same type. In details, what we need is a *router*. A router is a special kind of actor that handles incoming messages using a pool of coroutines. The coroutines in the pool read the messages using a FIFO algorithm.
+
+We can define a router actor quite easily, using the `router` function on the `KContext` object:
+
+```kotlin
+object MainActor {
+
+    object Start
+
+    fun behavior(): KBehavior<Start> =
+        setup { ctx ->
+            val routeRef = ctx.router("greeter", 1000, Greeter.behavior)
+            repeat(1000) {
+                routeRef `!` Greeter.Greet(it)
+            }
+            stopped()
+        }
+}
+```
+
+The first parameter of the `router` function is the name of the router, the second is the size of the pool, and the third is the behavior handling incoming messages. In the above example, the `Greeter` behavior is defined as a standard actor behavior.
+
+Be aware that all the coroutines in the pool are created when the router is created. 
+
 ## Blocking Behaviors
 
 The `kactor` library is heavenly based on Kotlin coroutines. In such environment, blocking a thread is not a good practice since the effect is that the thread is not available for other coroutines. However, sometimes we need to block a thread. For example, we can have a behavior that reads from a file, and we need to wait for the file to be read. In this case, we can use the `blocking` behavior builder:
@@ -340,6 +410,10 @@ Inside the `MDC` map, every actor put its name with the `kactor` key. An example
 ```
 2022-12-04 15:20:35,850 [DefaultDispatcher-worker-2] [{kactor=kactor_0}] INFO  kactor_0 - Hello Actor 0!
 ```
+
+## Acknowledgements
+
+The `kactor` library would not have been possible without the great book [Kotlin Coroutines Deep Dive](https://kt.academy/book/coroutines) by Marcin Moskała. The book is a great resource to learn about Kotlin coroutines, and it's a must-read for every Kotlin developer.
 
 ## Disclosure
 

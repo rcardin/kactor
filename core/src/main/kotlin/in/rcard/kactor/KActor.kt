@@ -142,7 +142,7 @@ private fun <T> spawnKActor(
         val actor = KActor(name, mailbox, this)
         actor.run(behavior)
     }
-    finally?.apply { job.invokeOnCompletion(this) }
+    finally?.run { job.invokeOnCompletion(this) }
     return KActorRef(mailbox)
 }
 

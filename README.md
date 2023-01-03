@@ -231,10 +231,38 @@ Once we have an actor system defined, we can _spawn_ other actors. To do so, we 
 ```kotlin
 val behavior = setup { ctx -> 
     val helloWorldActorRef = ctx.spawn("kactor_$i", HelloWorldActor.behavior)
+    // ...
 }
 ```
 
 The `spawn` builder is defined as an extension function of the `KactorContext<T>`. As we already saw in previous sections, we can retrieve an actor context using the `setup` and the `receive` behavior builders. In the above example, we used the `setup` builder. Every actor other than the actor system has a name, which is passed as a parameter during actor creation.
+
+Many times, an actor uses some resources that must be released when the actor stops. To do so, we can use the `finally` input lambda of the `spawn` builder:
+
+```kotlin
+val behavior: KBehavior<Start> = receive { ctx, _ ->
+    val res = Resource("my-resource")
+    val kRef = ctx.spawn(
+        "resKactor",
+        ResourceKActor.behavior(res),
+        finally = { res.close() }
+    )
+    kRef `!` ResourceKActor.UseIt
+    same()
+}
+```
+
+The actor system guarantees that the `finally` lambda is called when the actor stops, both in response of an error or voluntary. The `finally` block receives the `Throwable` that caused the actor to stop, if any:
+
+```kotlin
+fun <T> KActorContext<*>.spawn(
+    name: String,
+    behavior: KBehavior<T>,
+    finally: ((ex: Throwable?) -> Unit)? = null
+): KActorRef<T>
+```
+
+In the `finally` block, we can pattern match the `Throwable` to understand what happened, and react accordingly.
 
 ## Sending Messages to an Actor
 

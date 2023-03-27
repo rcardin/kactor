@@ -10,6 +10,27 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
+  <name>Kactor Core Module</name>
+  <description>Core module containing the actor implementation.
+  </description>
+  <url>https://github.com/rcardin/kactor</url>
+  <scm>
+    <connection>scm:git:git://github.com/rcardin/kactor.git</connection>
+    <developerConnection>scm:git:ssh://github.com:rcardin/kactor.git</developerConnection>
+    <url>http://github.com/rcardin/kactor/tree/master</url>
+  </scm>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Riccardo Cardin</name>
+    </developer>
+  </developers>
+
   <properties>
     <slf4j-api.version>2.0.3</slf4j-api.version>
   </properties>

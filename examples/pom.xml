@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <artifactId>kactor-parent</artifactId>
-        <groupId>in.rcard</groupId>
-        <version>0.0.1</version>
-    </parent>
+  <parent>
+    <artifactId>kactor-parent</artifactId>
+    <groupId>in.rcard</groupId>
+    <version>0.0.1</version>
+  </parent>
 
   <name>Kactor Examples Project</name>
   <description>A project containing examples of the available use cases using kactor library.
@@ -17,6 +18,7 @@
     <connection>scm:git:git://github.com/rcardin/kactor.git</connection>
     <developerConnection>scm:git:ssh://github.com:rcardin/kactor.git</developerConnection>
     <url>http://github.com/rcardin/kactor/tree/master</url>
+    <tag>HEAD</tag>
   </scm>
   <licenses>
     <license>
@@ -26,23 +28,24 @@
   </licenses>
   <developers>
     <developer>
+      <id>rcardin</id>
       <name>Riccardo Cardin</name>
     </developer>
   </developers>
 
-    <artifactId>kactor-examples</artifactId>
+  <artifactId>kactor-examples</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>in.rcard</groupId>
-            <artifactId>kactor-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.4.4</version>
-        </dependency>
-    </dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>in.rcard</groupId>
+      <artifactId>kactor-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.4.4</version>
+    </dependency>
+  </dependencies>
   <build>
     <plugins>
       <plugin>

@@ -14,6 +14,7 @@
   <description>The parent project containing the common dependencies for all the kactor modules.
   </description>
   <url>https://github.com/rcardin/kactor</url>
+  <inceptionYear>2022</inceptionYear>
   <scm>
     <connection>scm:git:git://github.com/rcardin/kactor.git</connection>
     <developerConnection>scm:git:ssh://github.com:rcardin/kactor.git</developerConnection>
@@ -23,6 +24,7 @@
     <license>
       <name>MIT License</name>
       <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
     </license>
   </licenses>
   <developers>
@@ -74,6 +76,31 @@
     <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
     <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
 
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.10.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.2.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.2.1</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
     <plugins>
       <plugin>
         <groupId>org.jetbrains.kotlin</groupId>
@@ -102,6 +129,9 @@
   <profiles>
     <profile>
       <id>release</id>
+      <properties>
+        <altDeploymentRepository>local::file:./target/staging-deploy</altDeploymentRepository>
+      </properties>
       <build>
         <plugins>
           <plugin>

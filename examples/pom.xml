@@ -6,7 +6,7 @@
     <parent>
         <artifactId>kactor-parent</artifactId>
         <groupId>in.rcard</groupId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.0.1</version>
     </parent>
 
   <name>Kactor Examples Project</name>

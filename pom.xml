@@ -129,6 +129,10 @@
   <profiles>
     <profile>
       <id>release</id>
+      <modules>
+        <module>core</module>
+        <module>examples</module>
+      </modules>
       <properties>
         <altDeploymentRepository>local::file:./target/staging-deploy</altDeploymentRepository>
       </properties>

@@ -144,7 +144,7 @@
             <version>${kotlin.version}</version>
             <executions>
               <execution>
-                <phase>pre-site</phase>
+                <phase>install</phase>
                 <goals>
                   <goal>javadocJar</goal>
                 </goals>

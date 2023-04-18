@@ -22,6 +22,16 @@ In Kotlin, we have **coroutines**, which are a form of lightweight threads. Coro
 
 This section gives a brief overview of the main feature of the `kactor` library. For a more detailed explanation, please refer to the following sections.
 
+To use the `kactor` library, you need to add the following dependency to your `pom.xml` file:
+
+```xml
+<dependency>
+  <groupId>in.rcard</groupId>
+  <artifactId>kactor-core</artifactId>
+  <version>0.0.1</version>
+</dependency>
+```
+
 First of all, we'll define the messages the actor accepts. Let's say we want to implement a counter. The counter can be incremented. The counter can also be reset to zero. The counter can also be queried for its current value:
 
 ```kotlin

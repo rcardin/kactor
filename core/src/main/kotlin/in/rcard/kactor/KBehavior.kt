@@ -9,11 +9,10 @@ internal object KBehaviorSame : KBehavior<Nothing>
 
 internal object KBehaviorStop : KBehavior<Nothing>
 
-internal class KBehaviorExtension<T>(private val receivedBehaviour: suspend (ctx: KActorContext<T>, msg: T) -> KBehavior<T>) :
+internal class KBehaviorExtension<T>(private val receivedBehaviour: suspend KBehaviorScope.(ctx: KActorContext<T>, msg: T) -> KBehavior<T>) :
     KBehavior<T> {
-    suspend fun receive(ctx: KActorContext<T>, msg: T): KBehavior<T> {
-        return receivedBehaviour(ctx, msg)
-    }
+    suspend fun receive(ctx: KActorContext<T>, msg: T): KBehavior<T> =
+        KBehaviorScope().receivedBehaviour(ctx, msg)
 }
 
 internal class KBehaviorSetup<T>(private val setupBehavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>) :
@@ -30,12 +29,12 @@ internal abstract class KBehaviorDecorator<T>(internal val decorated: KBehavior<
 
 internal class KBehaviorSupervised<T>(
     supervisedBehavior: KBehavior<T>,
-    val strategy: SupervisorStrategy = SupervisorStrategy.ESCALATE
+    val strategy: SupervisorStrategy = SupervisorStrategy.ESCALATE,
 ) : KBehaviorDecorator<T>(supervisedBehavior)
 
 enum class SupervisorStrategy {
     STOP,
-    ESCALATE
+    ESCALATE,
 }
 
 internal class KBehaviorBlocking<T>(decorated: KBehavior<T>) : KBehaviorDecorator<T>(decorated) {
@@ -43,30 +42,34 @@ internal class KBehaviorBlocking<T>(decorated: KBehavior<T>) : KBehaviorDecorato
         get() = true
 }
 
-internal class KBehaviorWithTimers<T>(internal val timedBehavior: suspend (timer: TimerScheduler<T>) -> KBehavior<T>) : KBehavior<T>
+internal class KBehaviorWithTimers<T>(internal val timedBehavior: suspend (timer: TimerScheduler<T>) -> KBehavior<T>) :
+    KBehavior<T>
 
-fun <T> setup(behavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>): KBehavior<T> =
+fun <T> setup(behavior: suspend KBehaviorScope.(ctx: KActorContext<T>) -> KBehavior<T>): KBehavior<T> =
     KBehaviorSetup { ctx ->
-        behavior(ctx)
+        KBehaviorScope().behavior(ctx)
     }
 
-fun <T> receive(receivedBehaviour: suspend (ctx: KActorContext<T>, msg: T) -> KBehavior<T>): KBehavior<T> =
+fun <T> receive(receivedBehaviour: suspend KBehaviorScope.(ctx: KActorContext<T>, msg: T) -> KBehavior<T>): KBehavior<T> =
     KBehaviorExtension(receivedBehaviour)
 
-fun <T> receiveMessage(receivedBehaviour: suspend (msg: T) -> KBehavior<T>): KBehavior<T> =
+fun <T> receiveMessage(receivedBehaviour: suspend KBehaviorScope.(msg: T) -> KBehavior<T>): KBehavior<T> =
     KBehaviorExtension { _, msg ->
         receivedBehaviour(msg)
     }
 
-@Suppress("UNCHECKED_CAST")
-fun <T> same(): KBehavior<T> = KBehaviorSame as KBehavior<T>
+class KBehaviorScope internal constructor()
 
-@Suppress("UNCHECKED_CAST")
-fun <T> stopped(): KBehavior<T> = KBehaviorStop as KBehavior<T>
+@Suppress("UNCHECKED_CAST", "UnusedReceiverParameter")
+fun <T> KBehaviorScope.same(): KBehavior<T> = KBehaviorSame as KBehavior<T>
 
-fun <T> supervise(
+@Suppress("UNCHECKED_CAST", "UnusedReceiverParameter")
+fun <T> KBehaviorScope.stopped(): KBehavior<T> = KBehaviorStop as KBehavior<T>
+
+@Suppress("UnusedReceiverParameter")
+fun <T> KBehaviorScope.supervise(
     supervisedBehavior: KBehavior<T>,
-    withStrategy: SupervisorStrategy
+    withStrategy: SupervisorStrategy,
 ): KBehavior<T> =
     KBehaviorSupervised(supervisedBehavior, withStrategy)
 

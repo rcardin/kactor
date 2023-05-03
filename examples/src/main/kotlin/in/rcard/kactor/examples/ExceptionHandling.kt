@@ -28,7 +28,7 @@ object ExceptionHandling {
                 repeat(1000) {
                     val ref = ctx.spawn(
                         "kactor_$it",
-                        supervise(PrintCount.behavior, withStrategy = SupervisorStrategy.STOP)
+                        supervise(PrintCount.behavior, withStrategy = SupervisorStrategy.STOP),
                     )
                     ref `!` PrintCount.Count(it)
                 }

@@ -4,7 +4,6 @@ import `in`.rcard.kactor.KBehavior
 import `in`.rcard.kactor.TimerScheduler
 import `in`.rcard.kactor.kactorSystem
 import `in`.rcard.kactor.receive
-import `in`.rcard.kactor.setup
 import `in`.rcard.kactor.stopped
 import `in`.rcard.kactor.withTimers
 import kotlinx.coroutines.coroutineScope
@@ -21,12 +20,11 @@ object TimersExample {
         object TimerKey
         object Tick
 
-        fun behavior(): KBehavior<Tick> = setup { _ ->
+        fun behavior(): KBehavior<Tick> =
             withTimers { timers ->
                 timers.startSingleTimer(TimerKey, Tick, 1.seconds)
                 processTick(0, timers)
             }
-        }
 
         private fun processTick(counter: Int, timers: TimerScheduler<Tick>): KBehavior<Tick> =
             receive { ctx, _ ->

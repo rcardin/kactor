@@ -18,7 +18,7 @@ import kotlin.coroutines.CoroutineContext
 internal class KActor<T>(
     name: String,
     private val receiveChannel: Channel<T>,
-    scope: CoroutineScope
+    scope: CoroutineScope,
 ) {
 
     private val ctx: KActorContext<T> =
@@ -60,7 +60,7 @@ internal class KActor<T>(
 
     private suspend fun nextBehavior(
         newBehavior: KBehavior<T>,
-        behavior: KBehavior<T>
+        behavior: KBehavior<T>,
     ) {
         when (newBehavior) {
             is KBehaviorSame -> {
@@ -77,7 +77,7 @@ internal class KActor<T>(
 class KActorContext<T> internal constructor(
     val self: KActorRef<T>,
     name: String,
-    internal val scope: CoroutineScope = CoroutineScope(SupervisorJob())
+    internal val scope: CoroutineScope = CoroutineScope(SupervisorJob()),
 ) {
     val log: Logger = LoggerFactory.getLogger(name)
 }
@@ -85,20 +85,20 @@ class KActorContext<T> internal constructor(
 fun <T> KActorContext<*>.spawn(
     name: String,
     behavior: KBehavior<T>,
-    finally: ((ex: Throwable?) -> Unit)? = null
+    finally: ((ex: Throwable?) -> Unit)? = null,
 ): KActorRef<T> {
     return spawnKActor(
         name,
         behavior,
         scope,
         buildContext(name, behavior),
-        finally
+        finally,
     )
 }
 
 private fun buildContext(
     name: String,
-    behavior: KBehavior<*>
+    behavior: KBehavior<*>,
 ): CoroutineContext {
     val job = resolveJob(behavior)
     val dispatcher = resolveDispatcher(behavior)
@@ -118,15 +118,18 @@ private fun <T> resolveJob(behavior: KBehavior<T>): CoroutineContext =
     }
 
 fun <T> resolveDispatcher(behavior: KBehavior<T>): CoroutineContext =
-    if (behavior.blocking) Dispatchers.IO
-    else Dispatchers.Default
+    if (behavior.blocking) {
+        Dispatchers.IO
+    } else {
+        Dispatchers.Default
+    }
 
 fun <T> CoroutineScope.kactorSystem(behavior: KBehavior<T>): KActorRef<T> {
     return spawnKActor(
         "kactor-system",
         behavior,
         this,
-        CoroutineName("kactor-system") + MDCContext(mapOf("kactor" to "kactor-system"))
+        CoroutineName("kactor-system") + MDCContext(mapOf("kactor" to "kactor-system")),
     )
 }
 
@@ -135,14 +138,14 @@ private fun <T> spawnKActor(
     behavior: KBehavior<T>,
     scope: CoroutineScope,
     context: CoroutineContext,
-    finally: ((ex: Throwable?) -> Unit)? = null
+    finally: ((ex: Throwable?) -> Unit)? = null,
 ): KActorRef<T> {
     val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
     val job = scope.launch(context) {
         val actor = KActor(name, mailbox, this)
         actor.run(behavior)
     }
-    finally?.run { job.invokeOnCompletion(this) }
+    finally?.apply { job.invokeOnCompletion(this) }
     return KActorRef(mailbox)
 }
 
@@ -171,7 +174,7 @@ fun <T> KActorContext<*>.router(name: String, poolSize: Int, behavior: KBehavior
 fun <T, R> CoroutineScope.ask(
     toKActorRef: KActorRef<T>,
     timeoutInMillis: Long = 1000L,
-    msgFactory: (ref: KActorRef<R>) -> T
+    msgFactory: (ref: KActorRef<R>) -> T,
 ): Deferred<R> {
     val mailbox = Channel<R>(capacity = Channel.RENDEZVOUS)
     val result = async {

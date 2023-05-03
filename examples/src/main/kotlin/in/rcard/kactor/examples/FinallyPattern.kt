@@ -33,7 +33,7 @@ object FinallyPattern {
             val kRef = ctx.spawn(
                 "resKactor",
                 ResourceKActor.behavior(res),
-                finally = { res.close() }
+                finally = { res.close() },
             )
             kRef `!` ResourceKActor.UseIt
             same()

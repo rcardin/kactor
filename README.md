@@ -1,4 +1,5 @@
 ![Kotlin Version](https://img.shields.io/badge/Kotlin-1.7.20-blue?style=flat&logo=kotlin)
+![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/rcardin/kactor/ci.yml?branch=main)
 ![Maven Central](https://img.shields.io/maven-central/v/in.rcard/kactor-core)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/rcardin/kactor)
 <a href="https://pinterest.github.io/ktlint/"><img src="https://img.shields.io/badge/code%20style-%E2%9D%A4-FF4081.svg" alt="ktlint"></a>

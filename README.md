@@ -447,7 +447,7 @@ The `log` property is an instance of the `org.slf4j.Logger` interface, and it lo
 %d [%thread] [{%mdc}] %-5level %logger{36} - %msg%n
 ```
 
-Every actor put its name with the `kactor` key inside the' MDC' map. An example of a log message is the following:
+Every actor put its name with the `kactor` key inside the `MDC` map. An example of a log message is the following:
 
 ```
 2022-12-04 15:20:35,850 [DefaultDispatcher-worker-2] [{kactor=kactor_0}] INFO  kactor_0 - Hello Actor 0!

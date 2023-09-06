@@ -45,7 +45,7 @@ object Counter {
 }
 ```
 
-Then, we defined the actor's behavior to respond to the above commands. We use the `receiveMessage` behavior builder, a helper function that allows us to write the actor's behavior as a function of the message received. The `receiveMessage` function takes a function as input and returns a `KBehavior<Command>`. The function receives in input the following message to process:
+Then, we defined the actor's behavior to respond to the above commands. We use the `receiveMessage` behavior builder, a helper function that allows us to write the actor's behavior as a function of the message received. The `receiveMessage` function takes a lambda as input and returns a `KBehavior<Command>`. The lambda receives in input the messages to process:
 
 ```kotlin
 object Counter {
@@ -120,7 +120,7 @@ The whole library is based on top of only a few types. In detail, the main types
 
 An actor's behavior is a function that defines how an actor should react to a message. In detail, an actor's behavior is a function that takes a message and returns a new behavior. The new behavior will be used to process the next message. We represent an actor's behavior with the KBehavior<T> type. The type parameter `T` represents the messages the actor can process.
 
-The only way to create an instance of the KBehavior<T> type is through the available builders. Let's see which are the ones available.
+The only way to create an instance of the `KBehavior<T> type is through the available builders. Let's see which are the ones available.
 
 ### The `receiveMessage` Builder
 

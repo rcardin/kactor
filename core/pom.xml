@@ -32,7 +32,7 @@
   </developers>
 
   <properties>
-    <slf4j-api.version>2.0.11</slf4j-api.version>
+    <slf4j-api.version>2.0.12</slf4j-api.version>
   </properties>
 
   <artifactId>kactor-core</artifactId>

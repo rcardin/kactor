@@ -1,5 +1,7 @@
 package `in`.rcard.kactor
 
+import `in`.rcard.kactor.kstyle.SupervisorStrategy
+
 sealed interface KBehavior<T> {
     val blocking: Boolean
         get() = false
@@ -11,8 +13,10 @@ internal object KBehaviorStop : KBehavior<Nothing>
 
 internal class KBehaviorExtension<T>(private val receivedBehaviour: suspend KBehaviorScope.(ctx: KActorContext<T>, msg: T) -> KBehavior<T>) :
     KBehavior<T> {
-    suspend fun receive(ctx: KActorContext<T>, msg: T): KBehavior<T> =
-        KBehaviorScope().receivedBehaviour(ctx, msg)
+    suspend fun receive(
+        ctx: KActorContext<T>,
+        msg: T,
+    ): KBehavior<T> = KBehaviorScope().receivedBehaviour(ctx, msg)
 }
 
 internal class KBehaviorSetup<T>(private val setupBehavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>) :
@@ -70,10 +74,8 @@ fun <T> KBehaviorScope.stopped(): KBehavior<T> = KBehaviorStop as KBehavior<T>
 fun <T> KBehaviorScope.supervise(
     supervisedBehavior: KBehavior<T>,
     withStrategy: SupervisorStrategy,
-): KBehavior<T> =
-    KBehaviorSupervised(supervisedBehavior, withStrategy)
+): KBehavior<T> = KBehaviorSupervised(supervisedBehavior, withStrategy)
 
 fun <T> blocking(behavior: KBehavior<T>): KBehavior<T> = KBehaviorBlocking(behavior)
 
-fun <T> withTimers(timedBehavior: suspend (timer: TimerScheduler<T>) -> KBehavior<T>): KBehavior<T> =
-    KBehaviorWithTimers(timedBehavior)
+fun <T> withTimers(timedBehavior: suspend (timer: TimerScheduler<T>) -> KBehavior<T>): KBehavior<T> = KBehaviorWithTimers(timedBehavior)

@@ -8,13 +8,13 @@ import `in`.rcard.kactor.same
 import kotlinx.coroutines.coroutineScope
 
 object ReceiveMessagePattern {
-    suspend fun receiveMessagePattern() = coroutineScope {
-        val mainActorRef = kactorSystem(MainActor.behavior)
-        mainActorRef `!` MainActor.Start
-    }
+    suspend fun receiveMessagePattern() =
+        coroutineScope {
+            val mainActorRef = kactorSystem(MainActor.behavior)
+            mainActorRef `!` MainActor.Start
+        }
 
     object MainActor {
-
         object Start
 
         val behavior: KBehavior<Start> =

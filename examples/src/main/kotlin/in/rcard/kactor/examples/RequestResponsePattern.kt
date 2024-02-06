@@ -16,14 +16,14 @@ import kotlinx.coroutines.coroutineScope
  * This example shows how to implement the request/response pattern using the tell pattern.
  */
 object RequestResponsePattern {
-    suspend fun requestResponsePattern() = coroutineScope {
-        val mainActorRef = kactorSystem(MainActor.behavior)
+    suspend fun requestResponsePattern() =
+        coroutineScope {
+            val mainActorRef = kactorSystem(MainActor.behavior)
 
-        mainActorRef `!` MainActor.Start
-    }
+            mainActorRef `!` MainActor.Start
+        }
 
     object MainActor {
-
         object Start
 
         val behavior: KBehavior<Start> =
@@ -37,19 +37,20 @@ object RequestResponsePattern {
     }
 
     object TellerActor {
-
         data class Question(val replyTo: KActorRef<AskerActor.Command>)
 
-        val behavior: KBehavior<Question> = receiveMessage { msg ->
-            msg.replyTo `!` AskerActor.Answer("42")
-            same()
-        }
+        val behavior: KBehavior<Question> =
+            receiveMessage { msg ->
+                msg.replyTo `!` AskerActor.Answer("42")
+                same()
+            }
     }
 
     object AskerActor {
-
         sealed interface Command
+
         object Start : Command
+
         data class Answer(val msg: String) : Command
 
         fun behavior(teller: KActorRef<TellerActor.Question>): KBehavior<Command> =

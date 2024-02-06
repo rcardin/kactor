@@ -11,14 +11,13 @@ import `in`.rcard.kactor.stopped
 import kotlinx.coroutines.coroutineScope
 
 object RouterPattern {
-
-    suspend fun routerPattern() = coroutineScope {
-        val mainKActorRef = kactorSystem(MainActor.behavior())
-        mainKActorRef `!` MainActor.Start
-    }
+    suspend fun routerPattern() =
+        coroutineScope {
+            val mainKActorRef = kactorSystem(MainActor.behavior())
+            mainKActorRef `!` MainActor.Start
+        }
 
     object MainActor {
-
         object Start
 
         fun behavior(): KBehavior<Start> =
@@ -34,9 +33,10 @@ object RouterPattern {
     object Greeter {
         data class Greet(val count: Int)
 
-        val behavior: KBehavior<Greet> = receive { ctx, msg ->
-            ctx.log.info("Greeting for the ${msg.count} time")
-            same()
-        }
+        val behavior: KBehavior<Greet> =
+            receive { ctx, msg ->
+                ctx.log.info("Greeting for the ${msg.count} time")
+                same()
+            }
     }
 }

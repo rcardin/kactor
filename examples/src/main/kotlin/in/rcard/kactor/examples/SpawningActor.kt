@@ -15,9 +15,10 @@ import kotlinx.coroutines.coroutineScope
  * This example shows how to spawn an actor from another actor.
  */
 object SpawningActor {
-    suspend fun spawningActor() = coroutineScope {
-        kactorSystem(MainActor.behavior)
-    }
+    suspend fun spawningActor() =
+        coroutineScope {
+            kactorSystem(MainActor.behavior)
+        }
 
     object HelloWorldActor {
         data class SayHello(val name: String, val replyTo: KActorRef<ReplyReceived>)

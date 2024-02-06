@@ -1,12 +1,8 @@
-package `in`.rcard.kactor.examples
+package `in`.rcard.kactor.kstyle
 
 import `in`.rcard.kactor.KActorRef
 import `in`.rcard.kactor.KActorRef.KActorRefOps.`!`
-import `in`.rcard.kactor.KBehavior
 import `in`.rcard.kactor.kactorSystem
-import `in`.rcard.kactor.receiveMessage
-import `in`.rcard.kactor.same
-import `in`.rcard.kactor.setup
 import `in`.rcard.kactor.spawn
 import kotlinx.coroutines.coroutineScope
 
@@ -17,8 +13,8 @@ object CounterExample {
         }
 
     object MainActor {
-        val behavior: KBehavior<Int> =
-            setup { ctx ->
+        val behavior: KkBehavior<Int> =
+            setup {
                 val counterRef = ctx.spawn("counter", Counter.behavior(0))
 
                 counterRef `!` Counter.Increment(40)
@@ -28,7 +24,7 @@ object CounterExample {
                 counterRef `!` Counter.Reset
                 counterRef `!` Counter.GetValue(ctx.self)
 
-                receiveMessage { msg ->
+                receive {
                     ctx.log.info("The counter value is $msg")
                     same()
                 }
@@ -44,8 +40,8 @@ object CounterExample {
 
         data class GetValue(val replyTo: KActorRef<Int>) : Command
 
-        fun behavior(currentValue: Int): KBehavior<Command> =
-            receiveMessage { msg ->
+        fun behavior(currentValue: Int): KkBehavior<Command> =
+            receive {
                 when (msg) {
                     is Increment -> behavior(currentValue + msg.by)
                     is Reset -> behavior(0)

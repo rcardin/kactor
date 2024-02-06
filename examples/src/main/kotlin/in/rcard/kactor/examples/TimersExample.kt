@@ -10,14 +10,14 @@ import kotlinx.coroutines.coroutineScope
 import kotlin.time.Duration.Companion.seconds
 
 object TimersExample {
-
-    suspend fun timersExample() = coroutineScope {
-        kactorSystem(MainActor.behavior())
-    }
+    suspend fun timersExample() =
+        coroutineScope {
+            kactorSystem(MainActor.behavior())
+        }
 
     object MainActor {
-
         object TimerKey
+
         object Tick
 
         fun behavior(): KBehavior<Tick> =
@@ -26,7 +26,10 @@ object TimersExample {
                 processTick(0, timers)
             }
 
-        private fun processTick(counter: Int, timers: TimerScheduler<Tick>): KBehavior<Tick> =
+        private fun processTick(
+            counter: Int,
+            timers: TimerScheduler<Tick>,
+        ): KBehavior<Tick> =
             receive { ctx, _ ->
                 ctx.log.info("Another second passed")
                 if (counter == 10) {

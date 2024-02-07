@@ -11,8 +11,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withTimeout
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import kotlin.coroutines.CoroutineContext
 
 internal class KActor<T>(
@@ -20,9 +18,8 @@ internal class KActor<T>(
     private val receiveChannel: Channel<T>,
     scope: CoroutineScope,
 ) {
-
     private val ctx: KActorContext<T> =
-        KActorContext(KActorRef(receiveChannel), name, scope)
+        KActorContext(self = KActorRef(receiveChannel), name = name, scope = scope)
 
     suspend fun run(behavior: KBehavior<T>) {
         when (behavior) {
@@ -72,14 +69,6 @@ internal class KActor<T>(
             }
         }
     }
-}
-
-class KActorContext<T> internal constructor(
-    val self: KActorRef<T>,
-    name: String,
-    internal val scope: CoroutineScope = CoroutineScope(SupervisorJob()),
-) {
-    val log: Logger = LoggerFactory.getLogger(name)
 }
 
 fun <T> KActorContext<*>.spawn(
@@ -141,19 +130,25 @@ private fun <T> spawnKActor(
     finally: ((ex: Throwable?) -> Unit)? = null,
 ): KActorRef<T> {
     val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
-    val job = scope.launch(context) {
-        val actor = KActor(name, mailbox, this)
-        actor.run(behavior)
-    }
+    val job =
+        scope.launch(context) {
+            val actor = KActor(name, mailbox, this)
+            actor.run(behavior)
+        }
     finally?.apply { job.invokeOnCompletion(this) }
     return KActorRef(mailbox)
 }
 
 // FIXME: Design could be improved
+
 /**
  * FIFO queue of messages.
  */
-fun <T> KActorContext<*>.router(name: String, poolSize: Int, behavior: KBehavior<T>): KActorRef<T> {
+fun <T> KActorContext<*>.router(
+    name: String,
+    poolSize: Int,
+    behavior: KBehavior<T>,
+): KActorRef<T> {
     val job = resolveJob(behavior)
     val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
 
@@ -177,16 +172,17 @@ fun <T, R> CoroutineScope.ask(
     msgFactory: (ref: KActorRef<R>) -> T,
 ): Deferred<R> {
     val mailbox = Channel<R>(capacity = Channel.RENDEZVOUS)
-    val result = async {
-        try {
-            withTimeout(timeoutInMillis) {
-                toKActorRef.tell(msgFactory.invoke(KActorRef(mailbox)))
-                val msgReceived = mailbox.receive()
-                msgReceived
+    val result =
+        async {
+            try {
+                withTimeout(timeoutInMillis) {
+                    toKActorRef.tell(msgFactory.invoke(KActorRef(mailbox)))
+                    val msgReceived = mailbox.receive()
+                    msgReceived
+                }
+            } finally {
+                mailbox.close()
             }
-        } finally {
-            mailbox.close()
         }
-    }
     return result
 }

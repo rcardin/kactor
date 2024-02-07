@@ -6,18 +6,11 @@ import `in`.rcard.kactor.KBehavior
 import `in`.rcard.kactor.kactorSystem
 import `in`.rcard.kactor.receiveMessage
 import `in`.rcard.kactor.same
-import `in`.rcard.kactor.setup
 import `in`.rcard.kactor.spawn
-import kotlinx.coroutines.coroutineScope
 
 object CounterExample {
-
-    suspend fun counterExample() = coroutineScope {
-        kactorSystem(MainActor.behavior)
-    }
-
-    object MainActor {
-        val behavior: KBehavior<Int> = setup { ctx ->
+    suspend fun counterExample() =
+        kactorSystem { ctx ->
             val counterRef = ctx.spawn("counter", Counter.behavior(0))
 
             counterRef `!` Counter.Increment(40)
@@ -32,23 +25,28 @@ object CounterExample {
                 same()
             }
         }
-    }
+
+    object MainActor
 
     object Counter {
         sealed interface Command
+
         data class Increment(val by: Int) : Command
+
         object Reset : Command
+
         data class GetValue(val replyTo: KActorRef<Int>) : Command
 
-        fun behavior(currentValue: Int): KBehavior<Command> = receiveMessage { msg ->
-            when (msg) {
-                is Increment -> behavior(currentValue + msg.by)
-                is Reset -> behavior(0)
-                is GetValue -> {
-                    msg.replyTo `!` currentValue
-                    same()
+        fun behavior(currentValue: Int): KBehavior<Command> =
+            receiveMessage { msg ->
+                when (msg) {
+                    is Increment -> behavior(currentValue + msg.by)
+                    is Reset -> behavior(0)
+                    is GetValue -> {
+                        msg.replyTo `!` currentValue
+                        same()
+                    }
                 }
             }
-        }
     }
 }

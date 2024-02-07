@@ -20,7 +20,6 @@ internal class KActor<T>(
     private val receiveChannel: Channel<T>,
     scope: CoroutineScope,
 ) {
-
     private val ctx: KActorContext<T> =
         KActorContext(KActorRef(receiveChannel), name, scope)
 
@@ -124,12 +123,16 @@ fun <T> resolveDispatcher(behavior: KBehavior<T>): CoroutineContext =
         Dispatchers.Default
     }
 
-fun <T> CoroutineScope.kactorSystem(behavior: KBehavior<T>): KActorRef<T> {
+fun <T> kactorSystem(kactorSystemBehavior: suspend (ctx: KActorContext<T>) -> KBehavior<T>): KActorRef<T> {
+    val kactorSystemScope =
+        CoroutineScope(CoroutineName("kactor-system") + MDCContext(mapOf("kactor" to "kactor-system")))
     return spawnKActor(
         "kactor-system",
-        behavior,
-        this,
-        CoroutineName("kactor-system") + MDCContext(mapOf("kactor" to "kactor-system")),
+        KBehaviorSetup { ctx ->
+            kactorSystemBehavior(ctx)
+        },
+        kactorSystemScope,
+        CoroutineName("kactor-system") + MDCContext(mapOf("kactor" to "kactor-system")), // TODO We don't need this anymore
     )
 }
 
@@ -141,19 +144,25 @@ private fun <T> spawnKActor(
     finally: ((ex: Throwable?) -> Unit)? = null,
 ): KActorRef<T> {
     val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
-    val job = scope.launch(context) {
-        val actor = KActor(name, mailbox, this)
-        actor.run(behavior)
-    }
+    val job =
+        scope.launch(context) {
+            val actor = KActor(name, mailbox, this)
+            actor.run(behavior)
+        }
     finally?.apply { job.invokeOnCompletion(this) }
     return KActorRef(mailbox)
 }
 
 // FIXME: Design could be improved
+
 /**
  * FIFO queue of messages.
  */
-fun <T> KActorContext<*>.router(name: String, poolSize: Int, behavior: KBehavior<T>): KActorRef<T> {
+fun <T> KActorContext<*>.router(
+    name: String,
+    poolSize: Int,
+    behavior: KBehavior<T>,
+): KActorRef<T> {
     val job = resolveJob(behavior)
     val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
 
@@ -177,16 +186,17 @@ fun <T, R> CoroutineScope.ask(
     msgFactory: (ref: KActorRef<R>) -> T,
 ): Deferred<R> {
     val mailbox = Channel<R>(capacity = Channel.RENDEZVOUS)
-    val result = async {
-        try {
-            withTimeout(timeoutInMillis) {
-                toKActorRef.tell(msgFactory.invoke(KActorRef(mailbox)))
-                val msgReceived = mailbox.receive()
-                msgReceived
+    val result =
+        async {
+            try {
+                withTimeout(timeoutInMillis) {
+                    toKActorRef.tell(msgFactory.invoke(KActorRef(mailbox)))
+                    val msgReceived = mailbox.receive()
+                    msgReceived
+                }
+            } finally {
+                mailbox.close()
             }
-        } finally {
-            mailbox.close()
         }
-    }
     return result
 }

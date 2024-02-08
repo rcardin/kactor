@@ -16,6 +16,7 @@ import kotlin.coroutines.CoroutineContext
 internal class KActor<T>(
     name: String,
     private val receiveChannel: Channel<T>,
+    private val signalChannel: Channel<Signal> = Channel(),
     scope: CoroutineScope,
 ) {
     private val ctx: KActorContext<T> =
@@ -40,7 +41,7 @@ internal class KActor<T>(
 
             is KBehaviorStop -> {
                 receiveChannel.close()
-                // TODO We should stop also all the children actors
+                ctx.children.forEach { it.stop() }
             }
 
             is KBehaviorDecorator -> {
@@ -76,13 +77,16 @@ fun <T> KActorContext<*>.spawn(
     behavior: KBehavior<T>,
     finally: ((ex: Throwable?) -> Unit)? = null,
 ): KActorRef<T> {
-    return spawnKActor(
-        name,
-        behavior,
-        scope,
-        buildContext(name, behavior),
-        finally,
-    )
+    val newSpawnedKActorRef =
+        spawnKActor(
+            name,
+            behavior,
+            scope,
+            buildContext(name, behavior),
+            finally,
+        )
+    addChild(newSpawnedKActorRef)
+    return newSpawnedKActorRef
 }
 
 private fun buildContext(
@@ -130,9 +134,10 @@ private fun <T> spawnKActor(
     finally: ((ex: Throwable?) -> Unit)? = null,
 ): KActorRef<T> {
     val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
+    val signalMailbox = Channel<Signal>(capacity = Channel.UNLIMITED)
     val job =
         scope.launch(context) {
-            val actor = KActor(name, mailbox, this)
+            val actor = KActor(name = name, receiveChannel = mailbox, signalChannel = signalMailbox, scope = this)
             actor.run(behavior)
         }
     finally?.apply { job.invokeOnCompletion(this) }
@@ -158,11 +163,12 @@ fun <T> KActorContext<*>.router(
                 job +
                 MDCContext(mapOf("kactor" to "kactor-routee-$name-$it"))
         scope.launch(context) {
-            val actor = KActor(name, mailbox, this)
+            val actor = KActor(name = name, receiveChannel = mailbox, scope = this) // TODO Children?
             actor.run(behavior)
         }
     }
 
+    // TODO Does it work with the children?
     return KActorRef(mailbox)
 }
 

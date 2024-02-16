@@ -42,6 +42,7 @@
   <properties>
     <kotlin.version>1.9.22</kotlin.version>
     <kotlinx-coroutines.version>1.8.0</kotlinx-coroutines.version>
+    <dokka-maven-plugin.version>1.9.10</dokka-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -141,7 +142,7 @@
           <plugin>
             <groupId>org.jetbrains.dokka</groupId>
             <artifactId>dokka-maven-plugin</artifactId>
-            <version>${kotlin.version}</version>
+            <version>${dokka-maven-plugin.version}</version>
             <executions>
               <execution>
                 <phase>install</phase>

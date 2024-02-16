@@ -14,10 +14,6 @@ class KActorRef<T> internal constructor(
         mailbox.send(msg)
     }
 
-    internal fun stop() {
-        // FIXME ???
-    }
-
     companion object KActorRefOps {
         suspend infix fun <T> KActorRef<T>.`!`(msg: T) {
             tell(msg)

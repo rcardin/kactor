@@ -4,6 +4,8 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/rcardin/kactor)
 <a href="https://pinterest.github.io/ktlint/"><img src="https://img.shields.io/badge/code%20style-%E2%9D%A4-FF4081.svg" alt="ktlint"></a>
 
+<img width="200" src="kactor.png" />
+
 # kactor 🎭
 
 A small proof of concept implementing the actor model using Kotlin coroutines. What's an actor? Actors are one of the first concurrency models created in Computer Science in 1973 by Carl Hewitt and Co.

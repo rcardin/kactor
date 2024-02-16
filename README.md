@@ -224,9 +224,7 @@ object MainActor {
 }
 ```
 
-In the above example, we stop the actor after creating a router actor and sending 1000 messages.
-
-⚠️ Feature still under development: Children actors are not stopped when the parent stops ⚠️
+In the above example, we stop the actor after creating a router actor and sending 1000 messages. When an actor stops, all the actors it created are stopped as well.
 
 ## Create an Actor
 

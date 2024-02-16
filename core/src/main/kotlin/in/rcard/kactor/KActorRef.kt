@@ -8,7 +8,7 @@ import kotlinx.coroutines.channels.SendChannel
  * @param T The type of the messages that the actor can receive.
  */
 class KActorRef<T> internal constructor(
-    private val mailbox: SendChannel<T>
+    private val mailbox: SendChannel<T>,
 ) {
     suspend fun tell(msg: T) {
         mailbox.send(msg)

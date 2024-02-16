@@ -7,7 +7,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withTimeout
@@ -18,11 +20,11 @@ import kotlin.coroutines.CoroutineContext
 internal class KActor<T>(
     name: String,
     private val receiveChannel: Channel<T>,
+    job: Job,
     scope: CoroutineScope,
 ) {
-
     private val ctx: KActorContext<T> =
-        KActorContext(KActorRef(receiveChannel), name, scope)
+        KActorContext(KActorRef(receiveChannel), name, job, scope)
 
     suspend fun run(behavior: KBehavior<T>) {
         when (behavior) {
@@ -43,7 +45,7 @@ internal class KActor<T>(
 
             is KBehaviorStop -> {
                 receiveChannel.close()
-                // TODO We should stop also all the children actors
+                ctx.job.cancelAndJoin()
             }
 
             is KBehaviorDecorator -> {
@@ -77,7 +79,8 @@ internal class KActor<T>(
 class KActorContext<T> internal constructor(
     val self: KActorRef<T>,
     name: String,
-    internal val scope: CoroutineScope = CoroutineScope(SupervisorJob()),
+    internal val job: Job,
+    internal val scope: CoroutineScope,
 ) {
     val log: Logger = LoggerFactory.getLogger(name)
 }
@@ -91,30 +94,34 @@ fun <T> KActorContext<*>.spawn(
         name,
         behavior,
         scope,
-        buildContext(name, behavior),
+        buildContext(name, job, behavior),
         finally,
     )
 }
 
 private fun buildContext(
     name: String,
+    parentJob: Job?,
     behavior: KBehavior<*>,
 ): CoroutineContext {
-    val job = resolveJob(behavior)
+    val job = resolveJob(behavior, parentJob)
     val dispatcher = resolveDispatcher(behavior)
     return CoroutineName("kactor-$name") + job + dispatcher + MDCContext(mapOf("kactor" to name))
 }
 
-private fun <T> resolveJob(behavior: KBehavior<T>): CoroutineContext =
+private fun resolveJob(
+    behavior: KBehavior<*>,
+    parentJob: Job?,
+): CoroutineContext =
     when (behavior) {
         is KBehaviorSupervised -> {
             when (behavior.strategy) {
-                SupervisorStrategy.STOP -> SupervisorJob()
-                SupervisorStrategy.ESCALATE -> Job()
+                SupervisorStrategy.STOP -> SupervisorJob(parentJob)
+                SupervisorStrategy.ESCALATE -> Job(parentJob)
             }
         }
 
-        else -> Job()
+        else -> Job(parentJob)
     }
 
 fun <T> resolveDispatcher(behavior: KBehavior<T>): CoroutineContext =
@@ -141,20 +148,26 @@ private fun <T> spawnKActor(
     finally: ((ex: Throwable?) -> Unit)? = null,
 ): KActorRef<T> {
     val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
-    val job = scope.launch(context) {
-        val actor = KActor(name, mailbox, this)
-        actor.run(behavior)
-    }
+    val job =
+        scope.launch(context) {
+            val actor = KActor(name, mailbox, coroutineContext.job, scope)
+            actor.run(behavior)
+        }
     finally?.apply { job.invokeOnCompletion(this) }
     return KActorRef(mailbox)
 }
 
 // FIXME: Design could be improved
+
 /**
  * FIFO queue of messages.
  */
-fun <T> KActorContext<*>.router(name: String, poolSize: Int, behavior: KBehavior<T>): KActorRef<T> {
-    val job = resolveJob(behavior)
+fun <T> KActorContext<*>.router(
+    name: String,
+    poolSize: Int,
+    behavior: KBehavior<T>,
+): KActorRef<T> {
+    val job = resolveJob(behavior, job)
     val mailbox = Channel<T>(capacity = Channel.UNLIMITED)
 
     repeat(poolSize) {
@@ -163,11 +176,12 @@ fun <T> KActorContext<*>.router(name: String, poolSize: Int, behavior: KBehavior
                 job +
                 MDCContext(mapOf("kactor" to "kactor-routee-$name-$it"))
         scope.launch(context) {
-            val actor = KActor(name, mailbox, this)
+            val actor = KActor(name, mailbox, coroutineContext.job, this)
             actor.run(behavior)
         }
     }
 
+    // TODO Does it work with the children?
     return KActorRef(mailbox)
 }
 
@@ -177,16 +191,17 @@ fun <T, R> CoroutineScope.ask(
     msgFactory: (ref: KActorRef<R>) -> T,
 ): Deferred<R> {
     val mailbox = Channel<R>(capacity = Channel.RENDEZVOUS)
-    val result = async {
-        try {
-            withTimeout(timeoutInMillis) {
-                toKActorRef.tell(msgFactory.invoke(KActorRef(mailbox)))
-                val msgReceived = mailbox.receive()
-                msgReceived
+    val result =
+        async {
+            try {
+                withTimeout(timeoutInMillis) {
+                    toKActorRef.tell(msgFactory.invoke(KActorRef(mailbox)))
+                    val msgReceived = mailbox.receive()
+                    msgReceived
+                }
+            } finally {
+                mailbox.close()
             }
-        } finally {
-            mailbox.close()
         }
-    }
     return result
 }

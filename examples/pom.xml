@@ -7,7 +7,7 @@
   <parent>
     <artifactId>kactor-parent</artifactId>
     <groupId>in.rcard</groupId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.1.0</version>
   </parent>
 
   <name>Kactor Examples Project</name>
@@ -43,7 +43,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.4.4</version>
+      <version>1.4.14</version>
     </dependency>
   </dependencies>
   <build>
